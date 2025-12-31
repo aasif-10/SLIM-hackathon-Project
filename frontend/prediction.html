@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SLIM | Forecast Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #050d1a;
+      --panel: #0d1b2e;
+      --border: #1f2f4a;
+      --accent: #3b82f6;
+      --accent-2: #06b6d4;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --success: #22c55e;
+      --warning: #f59e0b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: radial-gradient(circle at 20% 20%, rgba(59, 130, 246, 0.1), transparent 32%),
+                  radial-gradient(circle at 80% 0%, rgba(6, 182, 212, 0.14), transparent 30%),
+                  var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      min-height: 100vh;
+    }
+
+    header {
+      background: transparent;
+      border-bottom: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 0;
+    }
+
+    .logo {
+      display: none;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 48px;
+    }
+
+    nav a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: white;
+    }
+
+    .main-content {
+      padding: 140px 0 48px;
+    }
+
+    .shell {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: grid;
+      gap: 20px;
+    }
+
+    .page-header {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .title h1 {
+      font-family: 'Space Grotesk', sans-serif;
+      font-size: 2.6rem;
+      letter-spacing: -0.02em;
+      margin-bottom: 10px;
+    }
+
+    .title p {
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.35);
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .panel {
+      background: linear-gradient(135deg, rgba(13, 27, 46, 0.96), rgba(9, 19, 32, 0.95));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 18px 18px 20px;
+      box-shadow: 0 12px 35px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+      text-transform: uppercase;
+      color: var(--muted);
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+    }
+
+    .section-title::before {
+      content: "";
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      box-shadow: 0 0 12px rgba(6, 182, 212, 0.8);
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      align-items: center;
+    }
+
+    input, button {
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: rgba(255, 255, 255, 0.02);
+      color: var(--text);
+      padding: 10px 12px;
+      font-size: 0.95rem;
+      outline: none;
+    }
+
+    input::placeholder { color: var(--muted); }
+
+    button {
+      background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      border: none;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 8px 22px rgba(59, 130, 246, 0.35);
+      transition: transform 0.12s ease, box-shadow 0.2s ease;
+      color: #031023;
+    }
+
+    button:hover { transform: translateY(-1px); box-shadow: 0 12px 28px rgba(59, 130, 246, 0.45); }
+
+    button.secondary {
+      background: transparent;
+      color: var(--text);
+      box-shadow: none;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 14px;
+    }
+
+    .metric-card {
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 14px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .metric-title {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+      font-weight: 700;
+    }
+
+    .metric-value {
+      font-size: 2rem;
+      font-weight: 700;
+      font-family: 'Space Grotesk', sans-serif;
+    }
+
+    .subtext { color: var(--muted); font-size: 0.9rem; margin-top: 6px; }
+
+    .rationale { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      border: 1px solid var(--border);
+      color: var(--text);
+    }
+
+    .badge.success { background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.35); color: #4ade80; }
+    .badge.warning { background: rgba(245, 158, 11, 0.12); border-color: rgba(245, 158, 11, 0.35); color: #facc15; }
+
+    .two-col { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 16px; }
+
+    .chart-box { height: 320px; position: relative; }
+
+    .status-line { display: flex; align-items: center; gap: 10px; margin-top: 8px; color: var(--muted); }
+
+    .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--success); box-shadow: 0 0 10px rgba(34, 197, 94, 0.8); }
+
+    .error { color: #f87171; margin-top: 8px; }
+
+    .stack { display: grid; gap: 10px; }
+
+    .callout { border-left: 3px solid var(--accent); padding-left: 12px; }
+
+    @media (max-width: 840px) { .two-col { grid-template-columns: 1fr; } header { flex-direction: column; align-items: flex-start; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">SLIM AI<span>Lake Intelligence</span></div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a class="active" href="prediction.html">Prediction</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="anomaly.html">Anomaly</a></li>
+            <li><a href="research.html">Research</a></li>
+            <li><a href="simulation.html">Simulation</a></li>
+            <li><a href="query.html">Query</a></li>
+            <li><a href="alerts.html">Alerts</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="shell">
+        <div class="page-header">
+          <div class="title">
+            <h1>Prediction &amp; Forecast Lab</h1>
+            <p>Visualize the Temporal Fusion Transformer forecast alongside the hackathon-friendly time-series outlook.</p>
+          </div>
+          <span class="pill">API docs: <a href="https://slim-production.up.railway.app/data" target="_blank" style="color: var(--text); text-decoration: underline;">/data</a></span>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">Prediction run</div>
+          <div class="controls">
+            <button id="predictBtn">Predict</button>
+          </div>
+          <div class="status-line" id="statusLine">
+            <span class="status-dot"></span>
+            <span>Ready — click predict to fetch the latest signals</span>
+          </div>
+          <div class="error" id="errorMsg" role="alert"></div>
+        </div>
+
+        <div class="two-col">
+          <div class="panel">
+            <div class="section-title">Temporal Fusion Transformer (next interval)</div>
+            <div class="stack">
+              <div class="grid">
+                <div class="metric-card">
+                  <div class="metric-title"><span>pH</span><span class="badge" id="phDelta">trend</span></div>
+                  <div class="metric-value" id="phValue">—</div>
+                  <div class="subtext">Forecast timestamp: <span id="forecastTs">—</span></div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title"><span>Turbidity</span><span class="badge" id="turbidityLabel">NTU</span></div>
+                  <div class="metric-value" id="turbidityValue">—</div>
+                  <div class="subtext">Suspended solids projection</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title"><span>Temperature</span><span class="badge">°C</span></div>
+                  <div class="metric-value" id="tempValue">—</div>
+                  <div class="subtext">Thermal comfort outlook</div>
+                </div>
+                <div class="metric-card">
+                  <div class="metric-title"><span>DO Level</span><span class="badge">mg/L</span></div>
+                  <div class="metric-value" id="doValue">—</div>
+                  <div class="subtext">Dissolved oxygen resilience</div>
+                </div>
+              </div>
+              <div class="chart-box"><canvas id="forecastChart"></canvas></div>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-title">TSF quick-look (hackathon insights)</div>
+            <div class="grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));">
+              <div class="metric-card">
+                <div class="metric-title"><span>pH drift</span><span class="badge" id="phHorizon">h</span></div>
+                <div class="metric-value" id="phTsf">—</div>
+                <p class="rationale" id="phRationale">Awaiting response...</p>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title"><span>DO projection</span><span class="badge" id="doHorizon">h</span></div>
+                <div class="metric-value" id="doTsf">—</div>
+                <p class="rationale" id="doRationale">Awaiting response...</p>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title"><span>Seasonal turbidity</span><span class="badge">pattern</span></div>
+                <div class="metric-value" id="turbidityPattern">—</div>
+                <p class="rationale" id="turbidityRationale">Monthly average baseline</p>
+              </div>
+              <div class="metric-card">
+                <div class="metric-title"><span>Temp spike</span><span class="badge">summer</span></div>
+                <div class="metric-value" id="tempSpike">—</div>
+                <p class="rationale" id="tempRationale">90th percentile heat risk</p>
+              </div>
+              <div class="metric-card" style="grid-column: span 2;">
+                <div class="metric-title"><span>Health index</span><span class="badge success" id="healthTrend">—</span></div>
+                <div class="metric-value" id="healthValue">—</div>
+                <p class="rationale" id="healthRationale">Composite of pH neutrality, turbidity, DO, and thermal stability.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="section-title">Narrative</div>
+          <div class="callout" id="narrative">Use the refresh action to pull the latest forecast signals.</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'https://slim-production.up.railway.app';
+    const errorMsg = document.getElementById('errorMsg');
+    const statusLine = document.getElementById('statusLine');
+    const narrative = document.getElementById('narrative');
+
+    const MOCK_FORECAST = {
+      forecast_timestamp: new Date().toISOString(),
+      predictions: {
+        ph: 7.1,
+        turbidity: 680,
+        temperature: 24.5,
+        do_level: 5.8
+      }
+    };
+
+    const MOCK_TSF = {
+      ph_forecast: {
+        horizon_hours: 12,
+        value: 7.05,
+        rationale: 'Sample outlook while authentication is missing.'
+      },
+      do_forecast: {
+        horizon_hours: 24,
+        value: 5.9,
+        rationale: 'Sample dissolved oxygen projection; add API key for live data.'
+      },
+      turbidity_pattern: {
+        expected_value: 640,
+        rationale: 'Using stored seasonal baseline.'
+      },
+      temperature_spike: {
+        expected_value: 25.4,
+        rationale: 'Mock summer spike; live data requires API key.'
+      },
+      health_index: {
+        next_value: 0.87,
+        trend: 'steady',
+        rationale: 'Composite score based on mock TSF inputs.'
+      }
+    };
+
+    let forecastChart;
+
+    function setStatus(text, isError = false) {
+      statusLine.querySelector('span:nth-child(2)').textContent = text;
+      errorMsg.textContent = isError ? text : '';
+      statusLine.querySelector('.status-dot').style.background = isError ? '#f87171' : 'var(--success)';
+      statusLine.querySelector('.status-dot').style.boxShadow = isError ? '0 0 10px rgba(248, 113, 113, 0.8)' : '0 0 10px rgba(34, 197, 94, 0.8)';
+    }
+
+    async function fetchJson(path, options = {}) {
+      const base = API_BASE.replace(/\/$/, '');
+      const headers = { 
+        'x-api-key': 'password',
+        'Content-Type': 'application/json',
+        ...(options.headers || {})
+      };
+
+      const response = await fetch(`${base}${path}`, { ...options, headers });
+      if (!response.ok) {
+        const body = await response.text();
+        throw new Error(`${response.status} ${response.statusText}: ${body}`);
+      }
+      return response.json();
+    }
+
+    function renderForecast(forecast) {
+      const { predictions, forecast_timestamp } = forecast;
+      document.getElementById('forecastTs').textContent = new Date(forecast_timestamp).toLocaleString();
+      document.getElementById('phValue').textContent = predictions.ph.toFixed(2);
+      document.getElementById('turbidityValue').textContent = predictions.turbidity.toFixed(1);
+      document.getElementById('tempValue').textContent = predictions.temperature.toFixed(1);
+      document.getElementById('doValue').textContent = predictions.do_level.toFixed(1);
+      document.getElementById('phDelta').textContent = predictions.ph >= 7 ? 'slightly basic' : 'slightly acidic';
+      document.getElementById('turbidityLabel').textContent = predictions.turbidity > 700 ? 'high' : 'moderate';
+
+      const ctx = document.getElementById('forecastChart');
+      const dataPoints = [predictions.ph, predictions.turbidity, predictions.temperature, predictions.do_level];
+      const labels = ['pH', 'Turbidity', 'Temperature', 'DO level'];
+      const colors = ['#60a5fa', '#38bdf8', '#34d399', '#fbbf24'];
+
+      if (forecastChart) forecastChart.destroy();
+      forecastChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [{
+            label: 'Next interval forecast',
+            data: dataPoints,
+            backgroundColor: colors,
+            borderRadius: 8,
+          }]
+        },
+        options: {
+          plugins: { legend: { display: false } },
+          scales: { x: { grid: { display: false } }, y: { grid: { color: 'rgba(255,255,255,0.08)' } } }
+        }
+      });
+    }
+
+    function renderTsf(tsf) {
+      document.getElementById('phHorizon').textContent = `${tsf.ph_forecast.horizon_hours}h`;
+      document.getElementById('doHorizon').textContent = `${tsf.do_forecast.horizon_hours}h`;
+      document.getElementById('phTsf').textContent = tsf.ph_forecast.value.toFixed(2);
+      document.getElementById('doTsf').textContent = tsf.do_forecast.value.toFixed(2);
+      document.getElementById('turbidityPattern').textContent = tsf.turbidity_pattern.expected_value.toFixed(1);
+      document.getElementById('tempSpike').textContent = tsf.temperature_spike.expected_value.toFixed(1);
+      document.getElementById('healthValue').textContent = tsf.health_index.next_value.toFixed(2);
+      document.getElementById('healthTrend').textContent = tsf.health_index.trend;
+
+      document.getElementById('phRationale').textContent = tsf.ph_forecast.rationale;
+      document.getElementById('doRationale').textContent = tsf.do_forecast.rationale;
+      document.getElementById('turbidityRationale').textContent = tsf.turbidity_pattern.rationale;
+      document.getElementById('tempRationale').textContent = tsf.temperature_spike.rationale;
+      document.getElementById('healthRationale').textContent = tsf.health_index.rationale;
+
+      const trendBadge = document.getElementById('healthTrend');
+      if (tsf.health_index.trend === 'rising') {
+        trendBadge.classList.add('success');
+        trendBadge.classList.remove('warning');
+      } else {
+        trendBadge.classList.add('warning');
+        trendBadge.classList.remove('success');
+      }
+
+      narrative.textContent = `pH expected in ${tsf.ph_forecast.horizon_hours}h: ${tsf.ph_forecast.value.toFixed(2)}, DO in ${tsf.do_forecast.horizon_hours}h: ${tsf.do_forecast.value.toFixed(2)}. Health index is ${tsf.health_index.trend} with next score ${tsf.health_index.next_value.toFixed(2)}.`;
+    }
+
+    async function loadData() {
+      errorMsg.textContent = '';
+
+      let forecastUsedMock = false;
+      try {
+        setStatus('Fetching TFT forecast...');
+        const forecastData = await fetchJson('/forecast/all');
+        renderForecast(forecastData);
+      } catch (err) {
+        forecastUsedMock = true;
+        const artifactHint = err.message.includes('artifacts') || err.message.includes('ckpt') || err.message.includes('pkl');
+        const fallbackMsg = artifactHint
+          ? 'TFT model artifacts are missing on the server. Showing a sample forecast instead.'
+          : 'Unable to load TFT forecast right now. Showing a sample forecast instead.';
+
+        setStatus(fallbackMsg, true);
+        errorMsg.textContent = err.message;
+        renderForecast(MOCK_FORECAST);
+      }
+
+      try {
+        setStatus('TFT ready — pulling TSF quick-look...');
+        const tsfData = await fetchJson('/api/tsf');
+        renderTsf(tsfData);
+        setStatus('Forecasts updated.');
+        if (forecastUsedMock) {
+          narrative.textContent += ' (Using sample TFT values until artifacts are restored.)';
+        }
+      } catch (err) {
+        const needsKey = err.message.includes('401') || err.message.toLowerCase().includes('api key');
+        if (needsKey) {
+          renderTsf(MOCK_TSF);
+          setStatus('TSF requires an API key — showing sample insights.', true);
+          narrative.textContent = 'Live TSF insights need an API key. Showing sample TSF values alongside the TFT forecast.' + (forecastUsedMock ? ' Sample TFT values shown while artifacts are missing.' : '');
+        } else {
+          setStatus('TSF endpoint is unavailable right now.', true);
+          narrative.textContent = 'TSF hackathon insights could not be loaded. The TFT forecast is displayed above.' + (forecastUsedMock ? ' Sample TFT values shown while artifacts are missing.' : '');
+        }
+        errorMsg.textContent = err.message;
+      }
+    }
+
+    document.getElementById('predictBtn').addEventListener('click', loadData);
+  </script>
+</body>
+</html>

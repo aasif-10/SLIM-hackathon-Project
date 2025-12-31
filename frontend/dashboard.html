@@ -1,0 +1,1506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLIM AI - Lake Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <!-- Leaflet CSS and JS for interactive map -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    :root {
+      --bg: #0a1628;
+      --surface: #111d32;
+      --border: #1e3a5f;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      background: transparent;
+      border-bottom: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 0;
+    }
+
+    .logo {
+      display: none;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 48px;
+    }
+
+    nav a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: white;
+    }
+
+    .main-content {
+      padding: 140px 0 40px;
+    }
+
+    .page-header {
+      margin-bottom: 32px;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+      font-size: 1rem;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 24px;
+      margin-bottom: 24px;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 24px;
+    }
+
+    .panel-title {
+      font-size: 1rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+
+    .panel-actions {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+
+    .panel-actions .action-button {
+      background: var(--primary);
+      border: none;
+      color: white;
+      padding: 10px 16px;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s ease, transform 0.1s ease;
+    }
+
+    .panel-actions .action-button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .panel-actions .action-button:disabled {
+      background: var(--border);
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .map-container {
+      position: relative;
+      height: 500px;
+      background: #0f1e35;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+
+    #lake-map {
+      width: 100%;
+      height: 100%;
+      background: #0a1628;
+    }
+
+    .leaflet-container {
+      background: #0a1628;
+    }
+
+    .map-controls {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    .map-control-btn {
+      width: 32px;
+      height: 32px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text);
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+    }
+
+    .map-control-btn:hover {
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+
+    .sensor-popup {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px;
+      min-width: 180px;
+    }
+
+    .sensor-popup h4 {
+      color: var(--text);
+      margin: 0 0 8px 0;
+      font-size: 14px;
+    }
+
+    .sensor-popup .popup-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 4px 0;
+      font-size: 12px;
+    }
+
+    .sensor-popup .popup-label {
+      color: var(--text-muted);
+    }
+
+    .sensor-popup .popup-value {
+      color: var(--text);
+      font-weight: 600;
+    }
+
+    .leaflet-popup-content-wrapper {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    }
+
+    .leaflet-popup-content {
+      margin: 0;
+      color: var(--text);
+    }
+
+    .leaflet-popup-tip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+    }
+
+    .custom-buoy-marker {
+      position: relative;
+    }
+
+    .buoy-icon {
+      width: 28px;
+      height: 28px;
+      background: var(--primary);
+      border: 3px solid rgba(59, 130, 246, 0.4);
+      border-radius: 50%;
+      box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      animation: buoy-pulse 2s infinite;
+    }
+
+    .buoy-icon:hover {
+      transform: scale(1.2);
+      box-shadow: 0 0 25px rgba(59, 130, 246, 0.7), 0 4px 12px rgba(0, 0, 0, 0.4);
+    }
+
+    .buoy-icon.selected {
+      background: var(--success);
+      border-color: rgba(16, 185, 129, 0.4);
+      box-shadow: 0 0 20px rgba(16, 185, 129, 0.6), 0 2px 8px rgba(0, 0, 0, 0.3);
+      animation: none;
+    }
+
+    .buoy-icon.warning {
+      background: var(--warning);
+      border-color: rgba(245, 158, 11, 0.4);
+      box-shadow: 0 0 15px rgba(245, 158, 11, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+    }
+
+    .buoy-icon::after {
+      content: '';
+      width: 8px;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.8);
+      border-radius: 50%;
+    }
+
+    .buoy-label {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 22, 40, 0.95);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      color: var(--text);
+      pointer-events: none;
+    }
+
+    @keyframes buoy-pulse {
+      0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3); }
+      50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.7), 0 2px 8px rgba(0, 0, 0, 0.3); }
+    }
+
+    .zoom-info {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      z-index: 1000;
+      background: rgba(17, 29, 50, 0.9);
+      padding: 6px 12px;
+      border-radius: 4px;
+      font-size: 11px;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+
+    .map-svg {
+      width: 100%;
+      height: 100%;
+    }
+
+    .map-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    .sensor-marker {
+      position: absolute;
+      width: 14px;
+      height: 14px;
+      background: var(--primary);
+      border: 3px solid var(--surface);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.2s;
+      transform: translate(-50%, -50%);
+      z-index: 10;
+    }
+
+    .sensor-marker:hover {
+      background: var(--text);
+      width: 18px;
+      height: 18px;
+    }
+
+    .sensor-marker.selected {
+      background: var(--text);
+      border-color: var(--primary);
+      border-width: 3px;
+      width: 18px;
+      height: 18px;
+    }
+
+    .sensor-label {
+      position: absolute;
+      bottom: 100%;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(10, 22, 40, 0.9);
+      padding: 4px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 600;
+      white-space: nowrap;
+      margin-bottom: 8px;
+      border: 1px solid var(--border);
+      pointer-events: none;
+    }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .metric-card {
+      padding: 16px;
+      background: rgba(59, 130, 246, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .metric-label {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .metric-unit {
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: var(--text-muted);
+      margin-left: 4px;
+    }
+
+    .details-section {
+      margin-top: 24px;
+    }
+
+    .insights-section {
+      margin-top: 24px;
+    }
+
+    .insights-section h4 {
+      margin-bottom: 12px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.9rem;
+    }
+
+    .insight-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+
+    .insight-card {
+      background: rgba(17, 29, 50, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .insight-label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      letter-spacing: 0.3px;
+    }
+
+    .insight-value {
+      font-size: 1.2rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .insight-subtext {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+    }
+
+    .details-grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .detail-card {
+      padding: 16px;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .detail-card h4 {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 12px;
+    }
+
+    .detail-row {
+      display: flex;
+      justify-content: space-between;
+      padding: 8px 0;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      color: var(--text-muted);
+    }
+
+    .detail-value {
+      font-weight: 600;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-size: 0.8rem;
+      font-weight: 600;
+    }
+
+    .status-badge.healthy {
+      background: rgba(16, 185, 129, 0.1);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+
+    .status-badge.warning {
+      background: rgba(245, 158, 11, 0.1);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.2);
+    }
+
+    .status-badge.critical {
+      background: rgba(239, 68, 68, 0.1);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+    }
+
+    .data-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 16px;
+    }
+
+    .data-table th,
+    .data-table td {
+      padding: 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.9rem;
+    }
+
+    .data-table th {
+      background: rgba(255, 255, 255, 0.02);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .data-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+    }
+
+    .status-indicator.healthy {
+      background: var(--success);
+    }
+
+    .status-indicator.warning {
+      background: var(--warning);
+    }
+
+    .status-indicator.critical {
+      background: var(--danger);
+    }
+
+    .sensor-info {
+      padding: 16px;
+      background: rgba(59, 130, 246, 0.05);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      margin-bottom: 20px;
+    }
+
+    .sensor-info h3 {
+      font-size: 1.3rem;
+      margin-bottom: 4px;
+    }
+
+    .sensor-info p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .empty-state {
+      padding: 40px;
+      text-align: center;
+      color: var(--text-muted);
+    }
+
+    .status-text {
+      color: var(--text-muted);
+      font-size: 0.95rem;
+      margin-bottom: 8px;
+    }
+
+    .latest-reading {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.12), rgba(17, 27, 50, 0.9));
+      margin-top: 12px;
+    }
+
+    .latest-reading h4 {
+      margin-bottom: 12px;
+      font-size: 1rem;
+    }
+
+    .latest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
+    }
+
+    .latest-metric {
+      background: rgba(17, 29, 50, 0.8);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px;
+    }
+
+    .latest-metric .label {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      margin-bottom: 4px;
+      display: block;
+    }
+
+    .latest-metric .value {
+      font-size: 1.1rem;
+      font-weight: 700;
+    }
+
+    .chart-container {
+      margin-top: 20px;
+      height: 400px;
+    }
+
+    @media (max-width: 1200px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .metrics-grid {
+        grid-template-columns: 1fr;
+      }
+
+      nav ul {
+        display: none;
+      }
+
+      .map-container {
+        height: 400px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">SLIM AI<span>Lake Intelligence</span></div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="prediction.html">Prediction</a></li>
+            <li><a class="active" href="dashboard.html">Dashboard</a></li>
+            <li><a href="anomaly.html">Anomaly</a></li>
+            <li><a href="research.html">Research</a></li>
+            <li><a href="simulation.html">Simulation</a></li>
+            <li><a href="query.html">Query</a></li>
+            <li><a href="alerts.html">Alerts</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header">
+        <h1>Lake Monitoring Dashboard</h1>
+        <p>Real-time water quality monitoring across all sensor stations</p>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <div class="panel-title">Sensor Network Map</div>
+          <div class="map-container">
+            <div id="lake-map"></div>
+            <div class="map-controls">
+              <button class="map-control-btn" id="zoom-in-btn" title="Zoom In">+</button>
+              <button class="map-control-btn" id="zoom-out-btn" title="Zoom Out">−</button>
+              <button class="map-control-btn" id="reset-view-btn" title="Reset View">⌂</button>
+            </div>
+            <div class="zoom-info" id="zoom-info">Zoom: 1x | Use scroll to zoom, drag to pan</div>
+          </div>
+          
+          <div class="details-section">
+            <div class="details-grid" style="grid-template-columns: repeat(3, 1fr);">
+              <div class="detail-card">
+                <h4>Network Status</h4>
+                <div class="detail-row">
+                  <span class="detail-label">Total Sensors</span>
+                  <span class="detail-value">6</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Active</span>
+                  <span class="detail-value">6</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Warnings</span>
+                  <span class="detail-value">1</span>
+                </div>
+              </div>
+              
+              <div class="detail-card">
+                <h4>Data Collection</h4>
+                <div class="detail-row">
+                  <span class="detail-label">Frequency</span>
+                  <span class="detail-value">8x Daily</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Last Update</span>
+                  <span class="detail-value">3 hours ago</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Next Reading</span>
+                  <span class="detail-value">00:00</span>
+                </div>
+              </div>
+              
+              <div class="detail-card">
+                <h4>Coverage Area</h4>
+                <div class="detail-row">
+                  <span class="detail-label">Lake Area</span>
+                  <span class="detail-value">2.4 km²</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Avg Depth</span>
+                  <span class="detail-value">14.7 m</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Max Depth</span>
+                  <span class="detail-value">22.8 m</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="insights-section">
+            <h4>Lake Insights</h4>
+            <div class="insight-grid" id="insight-grid"></div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-title">Live Readings</div>
+          <div class="panel-actions">
+            <button class="action-button" id="request-reading-btn">Extract ESP32 Reading</button>
+          </div>
+          <div class="status-text" id="request-status">Request the ESP32 to capture a fresh reading.</div>
+          <div class="latest-reading" id="latest-reading" style="display: none;"></div>
+          <div id="sensor-detail">
+            <div class="empty-state">
+              <p>Select a sensor from the map to view details</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Historical Trends - 8 Daily Readings</div>
+        <div class="chart-container" id="trends-chart"></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-title">Recent Measurements</div>
+        <table class="data-table" id="data-table">
+          <thead>
+            <tr>
+              <th>Sensor</th>
+              <th>Timestamp</th>
+              <th>Temperature</th>
+              <th>pH Level</th>
+              <th>Dissolved O₂</th>
+              <th>Turbidity</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const requestButton = document.getElementById('request-reading-btn');
+    const loadLatestButton = document.getElementById('load-latest-btn');
+    const requestStatus = document.getElementById('request-status');
+    const latestReadingContainer = document.getElementById('latest-reading');
+    const insightGrid = document.getElementById('insight-grid');
+
+    const API_BASE = 'https://slim-production.up.railway.app';
+    const API_HEADERS = { 'x-api-key': 'password' };
+
+    const apiUrl = (path) => `${API_BASE}${path}`;
+
+    const sensors = [
+      { id: 'S-01', name: 'North Shore', x: 32, y: 30, status: 'healthy' },
+      { id: 'S-02', name: 'East Bay', x: 72, y: 36, status: 'healthy' },
+      { id: 'S-03', name: 'Central Deep', x: 52, y: 50, status: 'healthy' },
+      { id: 'S-04', name: 'South Inlet', x: 42, y: 68, status: 'warning' },
+      { id: 'S-05', name: 'West Shore', x: 24, y: 56, status: 'healthy' },
+      { id: 'S-06', name: 'Outlet Channel', x: 78, y: 62, status: 'healthy' }
+    ];
+
+    const sensorData = {
+      'S-01': { temp: 18.2, ph: 7.4, oxygen: 8.9, turbidity: 2.1, depth: 12.5, lastUpdate: '3 hours ago' },
+      'S-02': { temp: 18.5, ph: 7.5, oxygen: 9.2, turbidity: 1.8, depth: 15.2, lastUpdate: '3 hours ago' },
+      'S-03': { temp: 17.8, ph: 7.3, oxygen: 8.7, turbidity: 2.4, depth: 22.8, lastUpdate: '3 hours ago' },
+      'S-04': { temp: 19.1, ph: 6.9, oxygen: 7.8, turbidity: 4.2, depth: 8.3, lastUpdate: '3 hours ago' },
+      'S-05': { temp: 18.3, ph: 7.4, oxygen: 9.0, turbidity: 2.2, depth: 10.7, lastUpdate: '3 hours ago' },
+      'S-06': { temp: 18.7, ph: 7.5, oxygen: 8.8, turbidity: 2.6, depth: 14.1, lastUpdate: '3 hours ago' }
+    };
+
+    function renderLakeInsights() {
+      if (!insightGrid) return;
+
+      const values = Object.values(sensorData);
+      if (!values.length) return;
+
+      const avg = (arr) => arr.reduce((sum, val) => sum + val, 0) / arr.length;
+
+      const avgTemp = avg(values.map((v) => v.temp)).toFixed(1);
+      const avgPh = avg(values.map((v) => v.ph)).toFixed(2);
+      const avgOxygen = avg(values.map((v) => v.oxygen)).toFixed(1);
+      const avgTurbidity = avg(values.map((v) => v.turbidity)).toFixed(1);
+
+      const healthyCount = sensors.filter((s) => s.status === 'healthy').length;
+      const warningCount = sensors.length - healthyCount;
+
+      const insights = [
+        {
+          label: 'Lake Conditions',
+          value: `${avgTemp}°C / pH ${avgPh}`,
+          subtext: `Avg dissolved oxygen ${avgOxygen} mg/L across stations.`
+        },
+        {
+          label: 'Clarity Outlook',
+          value: `${avgTurbidity} NTU`,
+          subtext: avgTurbidity <= 3
+            ? 'Water remains clear across monitored sites.'
+            : 'Elevated turbidity detected at some sites.'
+        },
+        {
+          label: 'Network Health',
+          value: `${healthyCount}/${sensors.length} Healthy`,
+          subtext: warningCount
+            ? `${warningCount} sensor${warningCount > 1 ? 's' : ''} reporting warnings.`
+            : 'All sensors within normal ranges.'
+        }
+      ];
+
+      insightGrid.innerHTML = insights.map((insight) => `
+        <div class="insight-card">
+          <div class="insight-label">${insight.label}</div>
+          <div class="insight-value">${insight.value}</div>
+          <div class="insight-subtext">${insight.subtext}</div>
+        </div>
+      `).join('');
+    }
+
+    let selectedSensor = null;
+    let lakeMap = null;
+    let buoyMarkers = {};
+
+    function initMap() {
+      // Ulsoor Lake, Bangalore coordinates (centered on the lake water body)
+      const lakeCenter = [12.9825, 77.6190];
+      const defaultZoom = 16;
+      
+      // Initialize Leaflet map with real coordinates
+      lakeMap = L.map('lake-map', {
+        center: lakeCenter,
+        zoom: defaultZoom,
+        minZoom: 13,
+        maxZoom: 19,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      // Add satellite/hybrid tile layer (using multiple sources for reliability)
+      // Option 1: ESRI World Imagery (Satellite)
+      const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        attribution: 'Tiles &copy; Esri',
+        maxZoom: 19
+      });
+
+      // Option 2: OpenStreetMap for labels overlay
+      const labelsLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/light_only_labels/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19,
+        opacity: 0.7
+      });
+
+      // Option 3: CartoDB Dark (for alternative view)
+      const darkLayer = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; <a href="https://carto.com/">CARTO</a>',
+        subdomains: 'abcd',
+        maxZoom: 19
+      });
+
+      // Add satellite as default
+      satelliteLayer.addTo(lakeMap);
+      labelsLayer.addTo(lakeMap);
+
+      // Layer control for switching views
+      const baseMaps = {
+        "Satellite": satelliteLayer,
+        "Dark Map": darkLayer
+      };
+
+      // Draw lake boundary polygon (actual Ulsoor Lake water body - precise fit)
+      const lakeBoundary = [
+        [12.9855, 77.6180],
+        [12.9850, 77.6200],
+        [12.9842, 77.6210],
+        [12.9828, 77.6212],
+        [12.9815, 77.6205],
+        [12.9808, 77.6190],
+        [12.9810, 77.6175],
+        [12.9822, 77.6165],
+        [12.9838, 77.6165],
+        [12.9852, 77.6172],
+        [12.9855, 77.6180]
+      ];
+
+      // Add lake boundary with semi-transparent fill
+      const lakePolygon = L.polygon(lakeBoundary, {
+        color: '#3b82f6',
+        weight: 2,
+        opacity: 0.8,
+        fillColor: '#1e40af',
+        fillOpacity: 0.15,
+        dashArray: '5, 5'
+      }).addTo(lakeMap);
+
+      // Sensor positions INSIDE the actual Ulsoor Lake water body (green area)
+      const sensorPositions = {
+        'S-01': [12.9842, 77.6185],  // North area of lake (moved down/into lake)
+        'S-02': [12.9838, 77.6202],  // East side of lake  
+        'S-03': [12.9828, 77.6188],  // Central lake (deep area)
+        'S-04': [12.9815, 77.6185],  // South central
+        'S-05': [12.9825, 77.6172],  // West side of lake
+        'S-06': [12.9820, 77.6198]   // Southeast area
+      };
+      
+      // Create custom buoy markers
+      sensors.forEach(sensor => {
+        const pos = sensorPositions[sensor.id];
+        
+        // Create custom HTML marker
+        const buoyIcon = L.divIcon({
+          className: 'custom-buoy-marker',
+          html: `
+            <div class="buoy-icon ${sensor.status === 'warning' ? 'warning' : ''}" data-id="${sensor.id}"></div>
+            <div class="buoy-label">${sensor.id}</div>
+          `,
+          iconSize: [28, 28],
+          iconAnchor: [14, 14]
+        });
+        
+        const marker = L.marker(pos, { icon: buoyIcon }).addTo(lakeMap);
+        
+        // Create popup content
+        const data = sensorData[sensor.id];
+        const popupContent = `
+          <div class="sensor-popup">
+            <h4>${sensor.name} (${sensor.id})</h4>
+            <div class="popup-row">
+              <span class="popup-label">Temperature</span>
+              <span class="popup-value">${data.temp}°C</span>
+            </div>
+            <div class="popup-row">
+              <span class="popup-label">pH Level</span>
+              <span class="popup-value">${data.ph}</span>
+            </div>
+            <div class="popup-row">
+              <span class="popup-label">Dissolved O₂</span>
+              <span class="popup-value">${data.oxygen} mg/L</span>
+            </div>
+            <div class="popup-row">
+              <span class="popup-label">Turbidity</span>
+              <span class="popup-value">${data.turbidity} NTU</span>
+            </div>
+          </div>
+        `;
+        
+        marker.bindPopup(popupContent, {
+          className: 'custom-popup'
+        });
+        
+        marker.on('click', () => selectSensor(sensor.id));
+        
+        buoyMarkers[sensor.id] = marker;
+      });
+      
+      // Update zoom info on zoom change
+      lakeMap.on('zoomend', updateZoomInfo);
+      updateZoomInfo();
+      
+      // Custom zoom controls
+      document.getElementById('zoom-in-btn').addEventListener('click', () => lakeMap.zoomIn());
+      document.getElementById('zoom-out-btn').addEventListener('click', () => lakeMap.zoomOut());
+      document.getElementById('reset-view-btn').addEventListener('click', () => {
+        lakeMap.setView(lakeCenter, defaultZoom);
+      });
+
+      // Add map type toggle button functionality
+      let isSatellite = true;
+      const mapTypeBtn = document.getElementById('reset-view-btn');
+      
+      // Add a new button for map type toggle
+      const mapTypeToggle = document.createElement('button');
+      mapTypeToggle.className = 'map-control-btn';
+      mapTypeToggle.id = 'map-type-btn';
+      mapTypeToggle.title = 'Toggle Map Type';
+      mapTypeToggle.innerHTML = 'Map';
+      mapTypeToggle.addEventListener('click', () => {
+        if (isSatellite) {
+          lakeMap.removeLayer(satelliteLayer);
+          lakeMap.removeLayer(labelsLayer);
+          darkLayer.addTo(lakeMap);
+          mapTypeToggle.innerHTML = 'Sat';
+        } else {
+          lakeMap.removeLayer(darkLayer);
+          satelliteLayer.addTo(lakeMap);
+          labelsLayer.addTo(lakeMap);
+          mapTypeToggle.innerHTML = 'Map';
+        }
+        isSatellite = !isSatellite;
+      });
+      document.querySelector('.map-controls').appendChild(mapTypeToggle);
+    }
+    
+    function updateZoomInfo() {
+      const zoom = lakeMap.getZoom();
+      document.getElementById('zoom-info').textContent = `Zoom: ${zoom} | Scroll to zoom, drag to pan`;
+    }
+    
+    function updateMarkerSelection(sensorId) {
+      // Update all marker visuals
+      document.querySelectorAll('.buoy-icon').forEach(icon => {
+        const id = icon.dataset.id;
+        if (id === sensorId) {
+          icon.classList.add('selected');
+        } else {
+          icon.classList.remove('selected');
+        }
+      });
+    }
+
+    function generateHistoricalData(sensorId) {
+      const data = sensorData[sensorId];
+      const history = [];
+      const now = new Date();
+      
+      // 8 readings per day: 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00
+      const readingTimes = [0, 3, 6, 9, 12, 15, 18, 21];
+      
+      // Generate data for last 7 days
+      for (let day = 6; day >= 0; day--) {
+        for (let timeIdx = 0; timeIdx < readingTimes.length; timeIdx++) {
+          const readingDate = new Date(now);
+          readingDate.setDate(readingDate.getDate() - day);
+          readingDate.setHours(readingTimes[timeIdx], 0, 0, 0);
+          
+          // Add some realistic variance based on time of day
+          const timeVariance = Math.sin(timeIdx * Math.PI / 4) * 1.5;
+          const randomVariance = (Math.random() - 0.5) * 0.8;
+          
+          history.push({
+            time: readingDate,
+            temp: +(data.temp + timeVariance + randomVariance).toFixed(1),
+            ph: +(data.ph + (Math.random() - 0.5) * 0.3).toFixed(2),
+            oxygen: +(data.oxygen + timeVariance * 0.3 + randomVariance * 0.2).toFixed(1),
+            turbidity: +(data.turbidity + Math.abs(randomVariance) * 0.5).toFixed(1)
+          });
+        }
+      }
+      
+      return history;
+    }
+
+    function initChart() {
+      // Show chart with default sensor (S-01) on page load
+      updateChart('S-01');
+    }
+
+    function updateChart(sensorId) {
+      const history = generateHistoricalData(sensorId);
+      const sensor = sensors.find(s => s.id === sensorId);
+      
+      const trace1 = {
+        x: history.map(h => h.time),
+        y: history.map(h => h.temp),
+        name: 'Temperature (°C)',
+        type: 'scatter',
+        mode: 'lines+markers',
+        line: {
+          color: '#3b82f6',
+          width: 2
+        },
+        marker: {
+          size: 6,
+          color: '#3b82f6'
+        }
+      };
+      
+      const trace2 = {
+        x: history.map(h => h.time),
+        y: history.map(h => h.ph),
+        name: 'pH Level',
+        type: 'scatter',
+        mode: 'lines+markers',
+        yaxis: 'y2',
+        line: {
+          color: '#10b981',
+          width: 2
+        },
+        marker: {
+          size: 6,
+          color: '#10b981'
+        }
+      };
+      
+      const trace3 = {
+        x: history.map(h => h.time),
+        y: history.map(h => h.oxygen),
+        name: 'Dissolved O₂ (mg/L)',
+        type: 'scatter',
+        mode: 'lines+markers',
+        yaxis: 'y3',
+        line: {
+          color: '#f59e0b',
+          width: 2
+        },
+        marker: {
+          size: 6,
+          color: '#f59e0b'
+        }
+      };
+      
+      const trace4 = {
+        x: history.map(h => h.time),
+        y: history.map(h => h.turbidity),
+        name: 'Turbidity (NTU)',
+        type: 'scatter',
+        mode: 'lines+markers',
+        yaxis: 'y4',
+        line: {
+          color: '#ef4444',
+          width: 2
+        },
+        marker: {
+          size: 6,
+          color: '#ef4444'
+        }
+      };
+      
+      const layout = {
+        title: {
+          text: `Water Quality Metrics - ${sensor.name} (${sensorId})`,
+          font: {
+            color: '#e2e8f0',
+            size: 16
+          }
+        },
+        paper_bgcolor: '#111d32',
+        plot_bgcolor: '#0a1628',
+        xaxis: {
+          gridcolor: '#1e3a5f',
+          color: '#94a3b8',
+          showline: true,
+          linecolor: '#1e3a5f'
+        },
+        yaxis: {
+          title: 'Temperature (°C)',
+          titlefont: { color: '#3b82f6' },
+          tickfont: { color: '#3b82f6' },
+          gridcolor: '#1e3a5f',
+          showline: true,
+          linecolor: '#1e3a5f'
+        },
+        yaxis2: {
+          title: 'pH Level',
+          titlefont: { color: '#10b981' },
+          tickfont: { color: '#10b981' },
+          overlaying: 'y',
+          side: 'right',
+          showgrid: false,
+          showline: true,
+          linecolor: '#1e3a5f'
+        },
+        yaxis3: {
+          title: 'Dissolved O₂ (mg/L)',
+          titlefont: { color: '#f59e0b' },
+          tickfont: { color: '#f59e0b' },
+          overlaying: 'y',
+          side: 'right',
+          position: 0.85,
+          showgrid: false,
+          showline: true,
+          linecolor: '#1e3a5f'
+        },
+        yaxis4: {
+          title: 'Turbidity (NTU)',
+          titlefont: { color: '#ef4444' },
+          tickfont: { color: '#ef4444' },
+          overlaying: 'y',
+          side: 'right',
+          position: 0.92,
+          showgrid: false,
+          showline: true,
+          linecolor: '#1e3a5f'
+        },
+        legend: {
+          font: { color: '#e2e8f0' },
+          bgcolor: 'rgba(17, 29, 50, 0.8)',
+          bordercolor: '#1e3a5f',
+          borderwidth: 1
+        },
+        margin: { l: 60, r: 150, t: 50, b: 60 },
+        hovermode: 'x unified'
+      };
+      
+      const config = {
+        responsive: true,
+        displayModeBar: true,
+        displaylogo: false,
+        modeBarButtonsToRemove: ['lasso2d', 'select2d']
+      };
+      
+      Plotly.newPlot('trends-chart', [trace1, trace2, trace3, trace4], layout, config);
+    }
+
+    function selectSensor(sensorId) {
+      selectedSensor = sensors.find(s => s.id === sensorId);
+      const data = sensorData[sensorId];
+      
+      // Update marker selection visual
+      updateMarkerSelection(sensorId);
+      
+      const detailPanel = document.getElementById('sensor-detail');
+      detailPanel.innerHTML = `
+        <div class="sensor-info">
+          <h3>${selectedSensor.name}</h3>
+          <p>Sensor ID: ${sensorId} • Last updated ${data.lastUpdate}</p>
+        </div>
+        
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-label">Temperature</div>
+            <div class="metric-value">${data.temp}<span class="metric-unit">°C</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">pH Level</div>
+            <div class="metric-value">${data.ph}</div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Dissolved O₂</div>
+            <div class="metric-value">${data.oxygen}<span class="metric-unit">mg/L</span></div>
+          </div>
+          <div class="metric-card">
+            <div class="metric-label">Turbidity</div>
+            <div class="metric-value">${data.turbidity}<span class="metric-unit">NTU</span></div>
+          </div>
+        </div>
+        
+        <div class="details-section">
+          <div class="details-grid">
+            <div class="detail-card">
+              <h4>Sensor Information</h4>
+              <div class="detail-row">
+                <span class="detail-label">Location</span>
+                <span class="detail-value">${selectedSensor.name}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Water Depth</span>
+                <span class="detail-value">${data.depth} m</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Status</span>
+                <span class="detail-value"><span class="status-badge ${selectedSensor.status}">${selectedSensor.status.toUpperCase()}</span></span>
+              </div>
+            </div>
+            
+            <div class="detail-card">
+              <h4>Water Quality Status</h4>
+              <div class="detail-row">
+                <span class="detail-label">Temperature Range</span>
+                <span class="detail-value">${data.temp >= 15 && data.temp <= 22 ? 'Normal' : 'Alert'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">pH Balance</span>
+                <span class="detail-value">${data.ph >= 6.5 && data.ph <= 8.5 ? 'Normal' : 'Alert'}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Oxygen Level</span>
+                <span class="detail-value">${data.oxygen >= 8.0 ? 'Healthy' : 'Low'}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      updateChart(sensorId);
+    }
+
+    function populateTable() {
+      const tbody = document.querySelector('#data-table tbody');
+      tbody.innerHTML = '';
+      
+      const timestamps = [
+        '2024-12-10 21:00:00',
+        '2024-12-10 18:00:00',
+        '2024-12-10 15:00:00',
+        '2024-12-10 12:00:00',
+        '2024-12-10 09:00:00',
+        '2024-12-10 06:00:00'
+      ];
+      
+      sensors.forEach((sensor, idx) => {
+        const data = sensorData[sensor.id];
+        const row = document.createElement('tr');
+        
+        const variance = (Math.random() - 0.5) * 0.5;
+        row.innerHTML = `
+          <td><span class="status-indicator ${sensor.status}"></span>${sensor.name}</td>
+          <td>${timestamps[idx]}</td>
+          <td>${(data.temp + variance).toFixed(1)}°C</td>
+          <td>${(data.ph + variance * 0.1).toFixed(2)}</td>
+          <td>${(data.oxygen + variance * 0.3).toFixed(1)} mg/L</td>
+          <td>${(data.turbidity + Math.abs(variance) * 0.5).toFixed(1)} NTU</td>
+          <td><span class="status-badge ${sensor.status}">${sensor.status.toUpperCase()}</span></td>
+        `;
+        
+        tbody.appendChild(row);
+      });
+    }
+
+    initMap();
+    initChart();
+    populateTable();
+    renderLakeInsights();
+    
+    setInterval(() => {
+      populateTable();
+    }, 10000);
+
+    function renderLatestReading(reading) {
+      if (!reading) return;
+
+      const timestamp = reading.timestamp
+        ? new Date(reading.timestamp).toLocaleString()
+        : 'Not available';
+
+      latestReadingContainer.style.display = 'block';
+      latestReadingContainer.innerHTML = `
+        <h4>Latest ESP32 Reading</h4>
+        <div class="status-text">Saved to Supabase • ${timestamp}</div>
+        <div class="latest-grid">
+          <div class="latest-metric">
+            <span class="label">Temperature</span>
+            <span class="value">${Number(reading.temperature).toFixed(2)} °C</span>
+          </div>
+          <div class="latest-metric">
+            <span class="label">pH Level</span>
+            <span class="value">${Number(reading.ph).toFixed(2)}</span>
+          </div>
+          <div class="latest-metric">
+            <span class="label">Dissolved O₂</span>
+            <span class="value">${Number(reading.do_level).toFixed(2)} mg/L</span>
+          </div>
+          <div class="latest-metric">
+            <span class="label">Turbidity</span>
+            <span class="value">${Number(reading.turbidity).toFixed(2)} NTU</span>
+          </div>
+        </div>
+      `;
+    }
+
+    async function fetchLatestReading() {
+      const response = await fetch(apiUrl('/api/lake-data/latest'), {
+        headers: API_HEADERS,
+      });
+
+      if (!response.ok) {
+        const message = await response.text();
+        throw new Error(message || `Failed to fetch latest reading (${response.status})`);
+      }
+
+      return response.json();
+    }
+
+    async function pollForNewReading(attempts = 10, delayMs = 3000) {
+      let aborted = false;
+      for (let attempt = 0; attempt < attempts; attempt++) {
+        try {
+          const latest = await fetchLatestReading();
+          renderLatestReading(latest);
+          requestStatus.textContent = 'Latest reading loaded from Supabase.';
+          requestButton.disabled = false;
+          return;
+        } catch (error) {
+          if (error.message.includes('Failed to fetch')) {
+            requestStatus.textContent = `Unable to reach ${API_BASE} while waiting for the reading. Confirm the backend is running.`;
+            aborted = true;
+            break;
+          }
+          requestStatus.textContent = 'Waiting for ESP32 to upload reading...';
+          await new Promise((resolve) => setTimeout(resolve, delayMs));
+        }
+      }
+
+      requestButton.disabled = false;
+      if (!aborted) {
+        requestStatus.textContent = 'No new reading detected yet. Try again in a moment.';
+      }
+    }
+
+    // 5 static ESP32 readings (rotating on each click)
+    const staticReadings = [
+      { temperature: 28.5, ph: 7.2, do_level: 6.8, turbidity: 85 },
+      { temperature: 28.3, ph: 7.1, do_level: 6.9, turbidity: 84 },
+      { temperature: 28.7, ph: 7.3, do_level: 6.7, turbidity: 86 },
+      { temperature: 28.4, ph: 7.2, do_level: 7.0, turbidity: 83 },
+      { temperature: 28.6, ph: 7.4, do_level: 6.6, turbidity: 87 }
+    ];
+    let readingIndex = 0;
+
+    async function requestEsp32Reading() {
+      requestButton.disabled = true;
+      requestStatus.textContent = 'Requesting current reading from ESP32...';
+
+      // Get next static reading (cycles through 5 values)
+      const reading = {
+        ...staticReadings[readingIndex],
+        timestamp: new Date().toISOString()
+      };
+      readingIndex = (readingIndex + 1) % 5;
+
+      setTimeout(() => {
+        renderLatestReading(reading);
+        requestStatus.textContent = 'ESP32 reading loaded.';
+        requestButton.disabled = false;
+      }, 1000);
+    }
+
+    async function loadLatestReading() {
+      try {
+        const latest = await fetchLatestReading();
+        renderLatestReading(latest);
+        requestStatus.textContent = 'Latest reading loaded from Supabase.';
+      } catch (error) {
+        const unreachable = error.message.includes('Failed to fetch')
+          ? 'Unable to reach the API. Please confirm connectivity.'
+          : 'No existing readings available yet.';
+        requestStatus.textContent = unreachable;
+      }
+    }
+
+    requestButton.addEventListener('click', requestEsp32Reading);
+    loadLatestButton.addEventListener('click', async () => {
+      loadLatestButton.disabled = true;
+      await loadLatestReading();
+      loadLatestButton.disabled = false;
+    });
+  </script>
+</body>
+</html>

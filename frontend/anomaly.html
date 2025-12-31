@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLIM AI | Anomaly Lab</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a1628;
+      --surface: #111d32;
+      --border: #1e3a5f;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      background: transparent;
+      border-bottom: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .nav { display: flex; align-items: center; justify-content: center; padding: 32px 0; }
+
+    .logo { display: none; }
+
+    nav ul { list-style: none; display: flex; gap: 48px; }
+    nav a { color: rgba(255, 255, 255, 0.7); text-decoration: none; font-weight: 600; transition: color 0.2s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+    nav a:hover, nav a.active { color: white; }
+
+    .main-content { padding: 140px 0 64px; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .page-header p { color: var(--text-muted); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .grid-full { margin-bottom: 24px; }
+    
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+    .panel h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px; }
+
+    .result-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; }
+    .chip {
+      padding: 14px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1c30;
+    }
+    .chip h3 { font-size: 0.9rem; margin-bottom: 8px; color: var(--text); }
+    .status { display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 999px; font-weight: 700; font-size: 0.8rem; }
+    .status[data-level="none"] { background: rgba(16, 185, 129, 0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.4); }
+    .status[data-level="low"] { background: rgba(245, 158, 11, 0.15); color: var(--warning); border: 1px solid rgba(245,158,11,0.4); }
+    .status[data-level="medium"] { background: rgba(245, 158, 11, 0.25); color: var(--warning); border: 1px solid rgba(245,158,11,0.6); }
+    .status[data-level="high"] { background: rgba(239, 68, 68, 0.18); color: var(--danger); border: 1px solid rgba(239,68,68,0.6); }
+
+    .sparkline { height: 5px; border-radius: 999px; background: var(--border); overflow: hidden; margin-top: 8px; }
+    .sparkline span { display: block; height: 100%; background: var(--primary); }
+
+    .chart-container { height: 380px; }
+    
+    .summary-stats { display: flex; gap: 24px; margin-bottom: 16px; flex-wrap: wrap; }
+    .stat-box { 
+      background: #0f1c30; 
+      border: 1px solid var(--border); 
+      border-radius: 8px; 
+      padding: 12px 16px;
+      min-width: 120px;
+    }
+    .stat-box .label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
+    .stat-box .value { font-size: 1.25rem; font-weight: 700; margin-top: 4px; }
+    .stat-box .value.high { color: var(--danger); }
+    .stat-box .value.medium { color: var(--warning); }
+    .stat-box .value.low { color: var(--primary); }
+    .stat-box .value.none { color: var(--success); }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">SLIM AI<span>Lake Intelligence</span></div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="prediction.html">Prediction</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a class="active" href="anomaly.html">Anomaly</a></li>
+            <li><a href="research.html">Research</a></li>
+            <li><a href="simulation.html">Simulation</a></li>
+            <li><a href="query.html">Query</a></li>
+            <li><a href="alerts.html">Alerts</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header">
+        <h1>Anomaly Detection Lab</h1>
+        <p>Multi-sensor anomaly heatmap and statistical analysis across the lake monitoring network.</p>
+      </div>
+
+      <!-- Heatmap Section -->
+      <div class="grid-full">
+        <div class="panel">
+          <h2>Anomaly Heatmap - Sensor Network (Last 24 Hours)</h2>
+          <div class="summary-stats">
+            <div class="stat-box">
+              <div class="label">Critical Anomalies</div>
+              <div class="value high" id="critical-count">3</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Warnings</div>
+              <div class="value medium" id="warning-count">8</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Normal Readings</div>
+              <div class="value none" id="normal-count">85</div>
+            </div>
+            <div class="stat-box">
+              <div class="label">Detection Rate</div>
+              <div class="value low">11.5%</div>
+            </div>
+          </div>
+          <div class="chart-container" id="heatmap-chart"></div>
+        </div>
+      </div>
+
+      <!-- Anomaly Timeline Graph -->
+      <div class="grid-full">
+        <div class="panel">
+          <h2>Anomaly Score Timeline - All Sensors</h2>
+          <div class="chart-container" id="timeline-chart"></div>
+        </div>
+      </div>
+
+      <!-- Anomaly Results Grid -->
+      <div class="grid">
+        <div class="panel">
+          <h2>Current Anomaly Status</h2>
+          <div id="anomaly-results" class="result-grid"></div>
+        </div>
+        <div class="panel">
+          <h2>Parameter Correlation Matrix</h2>
+          <div class="chart-container" id="correlation-chart" style="height: 280px;"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const chartColors = {
+      bg: '#0a1628',
+      surface: '#111d32',
+      border: '#1e3a5f',
+      text: '#e2e8f0',
+      muted: '#94a3b8',
+      primary: '#3b82f6',
+      success: '#10b981',
+      warning: '#f59e0b',
+      danger: '#ef4444'
+    };
+
+    // Mock anomaly data for sensors over time
+    const sensors = ['S-01 North', 'S-02 East', 'S-03 Central', 'S-04 South', 'S-05 West', 'S-06 Outlet'];
+    const hours = [];
+    for (let i = 23; i >= 0; i--) {
+      const h = new Date();
+      h.setHours(h.getHours() - i);
+      hours.push(h.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+    }
+
+    // Generate realistic anomaly scores (0 = normal, 1 = low, 2 = medium, 3 = high)
+    function generateAnomalyData() {
+      const data = [];
+      sensors.forEach((sensor, sIdx) => {
+        const row = [];
+        hours.forEach((hour, hIdx) => {
+          // Create realistic patterns - S-04 has more anomalies, early morning has fewer
+          let score = 0;
+          const rand = Math.random();
+          
+          if (sensor.includes('S-04')) {
+            // South Inlet has more issues
+            if (rand > 0.6) score = 1;
+            if (rand > 0.8) score = 2;
+            if (rand > 0.92) score = 3;
+          } else if (sensor.includes('S-03')) {
+            // Central has occasional issues
+            if (rand > 0.75) score = 1;
+            if (rand > 0.9) score = 2;
+            if (rand > 0.97) score = 3;
+          } else {
+            // Others mostly normal
+            if (rand > 0.85) score = 1;
+            if (rand > 0.95) score = 2;
+          }
+          
+          row.push(score);
+        });
+        data.push(row);
+      });
+      return data;
+    }
+
+    const anomalyData = generateAnomalyData();
+
+    // Render Heatmap
+    function renderHeatmap() {
+      const colorscale = [
+        [0, chartColors.success],
+        [0.33, '#4ade80'],
+        [0.5, chartColors.warning],
+        [0.75, '#f97316'],
+        [1, chartColors.danger]
+      ];
+
+      const trace = {
+        z: anomalyData,
+        x: hours,
+        y: sensors,
+        type: 'heatmap',
+        colorscale: colorscale,
+        showscale: true,
+        colorbar: {
+          title: { text: 'Severity', font: { color: chartColors.text, size: 11 } },
+          tickvals: [0, 1, 2, 3],
+          ticktext: ['Normal', 'Low', 'Medium', 'High'],
+          tickfont: { color: chartColors.muted, size: 10 },
+          len: 0.8
+        },
+        hoverongaps: false,
+        hovertemplate: '<b>%{y}</b><br>Time: %{x}<br>Severity: %{z}<extra></extra>'
+      };
+
+      const layout = {
+        paper_bgcolor: chartColors.surface,
+        plot_bgcolor: chartColors.bg,
+        font: { color: chartColors.text, family: 'Inter, sans-serif' },
+        margin: { l: 100, r: 80, t: 30, b: 60 },
+        xaxis: {
+          title: { text: 'Time (24 Hours)', font: { size: 11 } },
+          tickangle: -45,
+          tickfont: { size: 9 },
+          gridcolor: 'transparent'
+        },
+        yaxis: {
+          title: { text: 'Sensor Location', font: { size: 11 } },
+          tickfont: { size: 10 },
+          gridcolor: 'transparent'
+        }
+      };
+
+      Plotly.newPlot('heatmap-chart', [trace], layout, { responsive: true, displayModeBar: false });
+    }
+
+    // Render Correlation Matrix
+    function renderCorrelationMatrix() {
+      const params = ['pH', 'Turbidity', 'Temp', 'DO'];
+      // Simulated correlation values
+      const correlations = [
+        [1.0, -0.32, 0.15, 0.45],
+        [-0.32, 1.0, 0.28, -0.62],
+        [0.15, 0.28, 1.0, -0.38],
+        [0.45, -0.62, -0.38, 1.0]
+      ];
+
+      const trace = {
+        z: correlations,
+        x: params,
+        y: params,
+        type: 'heatmap',
+        colorscale: [
+          [0, '#ef4444'],
+          [0.5, '#1e293b'],
+          [1, '#3b82f6']
+        ],
+        zmin: -1,
+        zmax: 1,
+        showscale: true,
+        colorbar: {
+          title: { text: 'Correlation', font: { color: chartColors.text, size: 10 } },
+          tickfont: { color: chartColors.muted, size: 9 },
+          len: 0.8
+        },
+        hovertemplate: '%{x} vs %{y}<br>r = %{z:.2f}<extra></extra>'
+      };
+
+      const annotations = [];
+      for (let i = 0; i < params.length; i++) {
+        for (let j = 0; j < params.length; j++) {
+          annotations.push({
+            x: params[j],
+            y: params[i],
+            text: correlations[i][j].toFixed(2),
+            font: { color: Math.abs(correlations[i][j]) > 0.3 ? 'white' : chartColors.muted, size: 11 },
+            showarrow: false
+          });
+        }
+      }
+
+      const layout = {
+        paper_bgcolor: chartColors.surface,
+        plot_bgcolor: chartColors.bg,
+        font: { color: chartColors.text, family: 'Inter, sans-serif' },
+        margin: { l: 60, r: 60, t: 20, b: 50 },
+        xaxis: { tickfont: { size: 11 }, gridcolor: 'transparent' },
+        yaxis: { tickfont: { size: 11 }, gridcolor: 'transparent' },
+        annotations: annotations
+      };
+
+      Plotly.newPlot('correlation-chart', [trace], layout, { responsive: true, displayModeBar: false });
+    }
+
+    // Render current anomaly status chips
+    function renderAnomalyStatus() {
+      const resultArea = document.getElementById('anomaly-results');
+      const anomalies = [
+        { title: 'pH', severity: 'none', value: '7.4' },
+        { title: 'Turbidity', severity: 'high', value: '485 NTU' },
+        { title: 'Temperature', severity: 'low', value: '24.5°C' },
+        { title: 'DO Level', severity: 'medium', value: '5.2 mg/L' },
+        { title: 'Pattern', severity: 'low', value: 'Drift' }
+      ];
+
+      resultArea.innerHTML = anomalies.map(a => `
+        <div class="chip">
+          <h3>${a.title}</h3>
+          <div class="status" data-level="${a.severity}">${a.severity.toUpperCase()}</div>
+          <p style="margin-top:6px; color: var(--text-muted); font-size: 0.85rem;">${a.value}</p>
+          <div class="sparkline"><span style="width:${['none','low','medium','high'].indexOf(a.severity) * 33 + 1}%"></span></div>
+        </div>
+      `).join('');
+    }
+
+    // Render Timeline Graph - Simple bar chart showing total anomalies per hour
+    function renderTimelineGraph() {
+      // Aggregate anomaly counts per hour across all sensors
+      const anomalyCounts = [];
+      const severityLabels = [];
+      
+      for (let h = 0; h < 24; h++) {
+        let count = 0;
+        for (let s = 0; s < sensors.length; s++) {
+          if (anomalyData[s][h] > 0) count++;
+        }
+        anomalyCounts.push(count);
+      }
+
+      // Color bars based on count
+      const barColors = anomalyCounts.map(c => {
+        if (c >= 4) return chartColors.danger;
+        if (c >= 2) return chartColors.warning;
+        if (c >= 1) return chartColors.primary;
+        return chartColors.success;
+      });
+
+      const trace = {
+        x: hours,
+        y: anomalyCounts,
+        type: 'bar',
+        marker: {
+          color: barColors,
+          line: { width: 0 }
+        },
+        hovertemplate: '<b>%{x}</b><br>Anomalies: %{y} sensors<extra></extra>'
+      };
+
+      const layout = {
+        paper_bgcolor: chartColors.surface,
+        plot_bgcolor: chartColors.bg,
+        font: { color: chartColors.text, family: 'Inter, sans-serif' },
+        margin: { l: 50, r: 30, t: 20, b: 70 },
+        xaxis: {
+          title: { text: 'Time (24 Hours)', font: { size: 11 } },
+          tickangle: -45,
+          tickfont: { size: 9 },
+          gridcolor: 'transparent'
+        },
+        yaxis: {
+          title: { text: 'Sensors with Anomalies', font: { size: 11 } },
+          tickfont: { size: 10 },
+          gridcolor: chartColors.border,
+          range: [0, 6],
+          dtick: 1
+        },
+        showlegend: false,
+        bargap: 0.3
+      };
+
+      Plotly.newPlot('timeline-chart', [trace], layout, { 
+        responsive: true, 
+        displayModeBar: false 
+      });
+    }
+
+    // Count anomalies for summary
+    function updateSummaryCounts() {
+      let critical = 0, warning = 0, normal = 0;
+      anomalyData.forEach(row => {
+        row.forEach(val => {
+          if (val === 3) critical++;
+          else if (val >= 1) warning++;
+          else normal++;
+        });
+      });
+      document.getElementById('critical-count').textContent = critical;
+      document.getElementById('warning-count').textContent = warning;
+      document.getElementById('normal-count').textContent = normal;
+    }
+
+    // Initialize
+    renderHeatmap();
+    renderTimelineGraph();
+    renderCorrelationMatrix();
+    renderAnomalyStatus();
+    updateSummaryCounts();
+  </script>
+</body>
+</html>

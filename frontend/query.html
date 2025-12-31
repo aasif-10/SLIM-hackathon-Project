@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>SLIM AI | Query</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --bg: #0a1628;
+      --surface: #111d32;
+      --border: #1e3a5f;
+      --text: #e2e8f0;
+      --text-muted: #94a3b8;
+      --primary: #3b82f6;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; }
+    header { background: transparent; border-bottom: none; position: absolute; top: 0; width: 100%; z-index: 100; }
+    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
+    .nav { display: flex; align-items: center; justify-content: center; padding: 32px 0; }
+    .logo { display: none; }
+    nav ul { list-style: none; display: flex; gap: 48px; }
+    nav a { color: rgba(255, 255, 255, 0.7); text-decoration: none; font-weight: 600; transition: color 0.2s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
+    nav a:hover, nav a.active { color: white; }
+
+    .main-content { padding: 140px 0 64px; }
+    .page-header { margin-bottom: 24px; }
+    .page-header h1 { font-size: 2rem; margin-bottom: 8px; }
+    .page-header p { color: var(--text-muted); }
+
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
+    .panel h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px; }
+
+    textarea { width: 100%; min-height: 140px; border-radius: 10px; border: 1px solid var(--border); background: #0f1c30; color: var(--text); padding: 12px; font-size: 1rem; resize: vertical; }
+    button { background: var(--primary); color: white; border: none; padding: 12px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.2s; }
+    button:hover { background: #2563eb; transform: translateY(-1px); }
+
+    .status { margin-top: 10px; color: var(--text-muted); font-size: 0.95rem; }
+    .answer { margin-top: 12px; padding: 14px; border-radius: 10px; background: #0f1c30; border: 1px solid var(--border); }
+    .answer h3 { font-size: 1rem; margin-bottom: 8px; }
+    .answer p { color: var(--text); }
+
+    .chart-box { position: relative; height: 340px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 14px; }
+    .chip { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0f1c30; }
+    .chip h4 { font-size: 0.95rem; margin-bottom: 6px; }
+    .chip p { color: var(--text-muted); font-size: 0.9rem; }
+
+    .muted { color: var(--text-muted); }
+
+    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="container">
+      <div class="nav">
+        <div class="logo">SLIM AI<span>Lake Intelligence</span></div>
+        <nav>
+          <ul>
+            <li><a href="index.html">Home</a></li>
+            <li><a href="prediction.html">Prediction</a></li>
+            <li><a href="dashboard.html">Dashboard</a></li>
+            <li><a href="anomaly.html">Anomaly</a></li>
+            <li><a href="research.html">Research</a></li>
+            <li><a href="simulation.html">Simulation</a></li>
+            <li><a href="query.html" class="active">Query</a></li>
+            <li><a href="alerts.html">Alerts</a></li>
+          </ul>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <main class="main-content">
+    <div class="container">
+      <div class="page-header">
+        <h1>Query the Lake Data</h1>
+        <p>Ask the LLM about trends in the lake readings and pair the response with a live graph analysis.</p>
+      </div>
+
+      <div class="grid">
+        <div class="panel">
+          <h2>Ask the dataset</h2>
+          <form id="query-form">
+            <label class="muted" for="query">Question</label>
+            <textarea id="query" name="query" placeholder="e.g., How has turbidity changed over the last few readings?" required></textarea>
+            <button type="submit" style="margin-top: 10px;">Send to LLM</button>
+          </form>
+          <div class="status" id="query-status">Connected to https://slim-production.up.railway.app/api/data-query</div>
+          <div class="answer" id="query-answer">
+            <h3>LLM Answer</h3>
+            <p class="muted">Waiting for a prompt...</p>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
+            <h2>Graph analysis</h2>
+            <button type="button" id="load-history-btn">Load history</button>
+          </div>
+          <div class="status" id="history-status">History not loaded yet. Click Load history to fetch recent readings.</div>
+          <div class="chart-box"><canvas id="historyChart"></canvas></div>
+          <div class="stat-grid" id="stat-grid"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    const API_BASE = 'https://slim-production.up.railway.app';
+    const API_HEADERS = {
+      'Content-Type': 'application/json',
+      'x-api-key': 'password'
+    };
+
+    const form = document.getElementById('query-form');
+    const queryInput = document.getElementById('query');
+    const statusLine = document.getElementById('query-status');
+    const answerBlock = document.getElementById('query-answer');
+    const statGrid = document.getElementById('stat-grid');
+    const loadHistoryBtn = document.getElementById('load-history-btn');
+    const historyStatus = document.getElementById('history-status');
+    let historyChart;
+    let graphSummary = 'History not loaded yet. Use the Load history button to populate the graph.';
+
+    function renderAnswer(text) {
+      answerBlock.innerHTML = `
+        <h3>LLM Answer</h3>
+        <p>${text}</p>
+        <div class="answer" style="margin-top:10px; background: #0c1a2c;">
+          <h3 style="margin-bottom:6px;">Graph analysis</h3>
+          <p class="muted">${graphSummary}</p>
+        </div>
+      `;
+    }
+
+    function buildStats(readings) {
+      const sorted = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+      const latest = sorted[sorted.length - 1];
+      const first = sorted[0];
+      const avg = (key) => sorted.reduce((acc, cur) => acc + Number(cur[key]), 0) / sorted.length;
+      const maxVal = (key) => Math.max(...sorted.map(r => Number(r[key])));
+      const minVal = (key) => Math.min(...sorted.map(r => Number(r[key])));
+
+      const phDelta = (latest.ph - first.ph).toFixed(2);
+      const tempDelta = (latest.temperature - first.temperature).toFixed(1);
+
+      graphSummary = `Latest pH ${latest.ph.toFixed(2)} (${phDelta >= 0 ? '+' : ''}${phDelta} vs start), ` +
+        `turbidity peaking at ${maxVal('turbidity').toFixed(0)} NTU with a low of ${minVal('turbidity').toFixed(0)}, ` +
+        `temperature drift ${tempDelta >= 0 ? 'up' : 'down'} ${Math.abs(tempDelta)}°C, ` +
+        `and average DO holding at ${avg('do_level').toFixed(2)} mg/L.`;
+
+      statGrid.innerHTML = [
+        { title: 'pH average', value: avg('ph').toFixed(2), detail: `Start ${first.ph.toFixed(2)} to ${latest.ph.toFixed(2)}` },
+        { title: 'Turbidity range', value: `${minVal('turbidity').toFixed(0)} - ${maxVal('turbidity').toFixed(0)} NTU`, detail: 'Last reading ' + latest.turbidity.toFixed(0) },
+        { title: 'Temperature shift', value: `${tempDelta >= 0 ? '+' : ''}${tempDelta}°C`, detail: `Avg ${avg('temperature').toFixed(1)}°C` },
+        { title: 'DO stability', value: `${avg('do_level').toFixed(2)} mg/L`, detail: `Min ${minVal('do_level').toFixed(1)} | Max ${maxVal('do_level').toFixed(1)}` },
+      ].map(stat => `
+        <div class="chip">
+          <h4>${stat.title}</h4>
+          <p style="color: var(--text); font-weight: 700;">${stat.value}</p>
+          <p>${stat.detail}</p>
+        </div>
+      `).join('');
+    }
+
+    async function loadHistory() {
+      if (historyStatus) historyStatus.textContent = 'Loading sensor history...';
+      try {
+        const res = await fetch(`${API_BASE}/api/lake-data/history?limit=180`, { headers: API_HEADERS });
+        if (!res.ok) throw new Error('History endpoint unavailable');
+        const readings = await res.json();
+        if (!Array.isArray(readings) || readings.length === 0) throw new Error('No readings found');
+
+        const sorted = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+        const labels = sorted.map(r => new Date(r.timestamp).toLocaleString());
+        const datasets = [
+          { key: 'ph', label: 'pH', color: '#60a5fa' },
+          { key: 'turbidity', label: 'Turbidity (NTU)', color: '#34d399' },
+          { key: 'temperature', label: 'Temperature (°C)', color: '#f97316' },
+          { key: 'do_level', label: 'DO (mg/L)', color: '#a78bfa' },
+        ].map(meta => ({
+          label: meta.label,
+          data: sorted.map(r => Number(r[meta.key])),
+          borderColor: meta.color,
+          backgroundColor: meta.color,
+          tension: 0.3,
+          fill: false,
+        }));
+
+        const ctx = document.getElementById('historyChart');
+        if (historyChart) historyChart.destroy();
+        historyChart = new Chart(ctx, {
+          type: 'line',
+          data: { labels, datasets },
+          options: {
+            plugins: { legend: { display: true, labels: { color: '#cbd5e1' } } },
+            scales: {
+              x: { ticks: { color: '#94a3b8', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,0.04)' } },
+              y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.04)' } }
+            }
+          }
+        });
+
+        buildStats(sorted);
+        renderAnswer('Graph context refreshed. Ask a question to blend LLM insight with these trends.');
+        if (historyStatus) historyStatus.textContent = 'History loaded from /api/lake-data/history.';
+      } catch (err) {
+        graphSummary = 'Unable to load sensor history. The graph will be empty until the API responds.';
+        statGrid.innerHTML = '<div class="chip"><h4>History unavailable</h4><p>Check API connectivity.</p></div>';
+        renderAnswer('Waiting on graph data. You can still ask the LLM about the dataset summary.');
+        if (historyStatus) historyStatus.textContent = 'History request failed. Try again when the API is reachable.';
+      }
+    }
+
+    async function submitQuery(question) {
+      statusLine.textContent = 'Sending to Groq...';
+      try {
+        const res = await fetch(`${API_BASE}/api/data-query`, {
+          method: 'POST',
+          headers: API_HEADERS,
+          body: JSON.stringify({ question })
+        });
+        if (!res.ok) throw new Error(await res.text());
+        const data = await res.json();
+        renderAnswer(data.answer);
+        statusLine.textContent = 'Answered via /api/data-query';
+      } catch (err) {
+        renderAnswer('Unable to fetch an answer right now. Please try again.');
+        statusLine.textContent = 'Error: ' + err.message;
+      }
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const question = queryInput.value.trim();
+      if (!question) return;
+      submitQuery(question);
+    });
+
+    loadHistoryBtn.addEventListener('click', async () => {
+      loadHistoryBtn.disabled = true;
+      await loadHistory();
+      loadHistoryBtn.disabled = false;
+    });
+  </script>
+</body>
+</html>
