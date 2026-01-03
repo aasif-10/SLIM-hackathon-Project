@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -316,8 +317,15 @@
     }
 
     @keyframes buoy-pulse {
-      0%, 100% { box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3); }
-      50% { box-shadow: 0 0 25px rgba(59, 130, 246, 0.7), 0 2px 8px rgba(0, 0, 0, 0.3); }
+
+      0%,
+      100% {
+        box-shadow: 0 0 15px rgba(59, 130, 246, 0.5), 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
+
+      50% {
+        box-shadow: 0 0 25px rgba(59, 130, 246, 0.7), 0 2px 8px rgba(0, 0, 0, 0.3);
+      }
     }
 
     .zoom-info {
@@ -678,6 +686,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
@@ -718,7 +727,7 @@
             </div>
             <div class="zoom-info" id="zoom-info">Zoom: 1x | Use scroll to zoom, drag to pan</div>
           </div>
-          
+
           <div class="details-section">
             <div class="details-grid" style="grid-template-columns: repeat(3, 1fr);">
               <div class="detail-card">
@@ -736,7 +745,7 @@
                   <span class="detail-value">1</span>
                 </div>
               </div>
-              
+
               <div class="detail-card">
                 <h4>Data Collection</h4>
                 <div class="detail-row">
@@ -752,7 +761,7 @@
                   <span class="detail-value">00:00</span>
                 </div>
               </div>
-              
+
               <div class="detail-card">
                 <h4>Coverage Area</h4>
                 <div class="detail-row">
@@ -781,6 +790,7 @@
           <div class="panel-title">Live Readings</div>
           <div class="panel-actions">
             <button class="action-button" id="request-reading-btn">Extract ESP32 Reading</button>
+            <button class="action-button secondary" id="load-latest-btn">Load Latest Reading</button>
           </div>
           <div class="status-text" id="request-status">Request the ESP32 to capture a fresh reading.</div>
           <div class="latest-reading" id="latest-reading" style="display: none;"></div>
@@ -824,7 +834,7 @@
     const latestReadingContainer = document.getElementById('latest-reading');
     const insightGrid = document.getElementById('insight-grid');
 
-    const API_BASE = 'https://slim-production.up.railway.app';
+    const API_BASE = 'http://127.0.0.1:8000';
     const API_HEADERS = { 'x-api-key': 'password' };
 
     const apiUrl = (path) => `${API_BASE}${path}`;
@@ -902,7 +912,7 @@
       // Ulsoor Lake, Bangalore coordinates (centered on the lake water body)
       const lakeCenter = [12.9825, 77.6190];
       const defaultZoom = 16;
-      
+
       // Initialize Leaflet map with real coordinates
       lakeMap = L.map('lake-map', {
         center: lakeCenter,
@@ -979,11 +989,11 @@
         'S-05': [12.9825, 77.6172],  // West side of lake
         'S-06': [12.9820, 77.6198]   // Southeast area
       };
-      
+
       // Create custom buoy markers
       sensors.forEach(sensor => {
         const pos = sensorPositions[sensor.id];
-        
+
         // Create custom HTML marker
         const buoyIcon = L.divIcon({
           className: 'custom-buoy-marker',
@@ -994,9 +1004,9 @@
           iconSize: [28, 28],
           iconAnchor: [14, 14]
         });
-        
+
         const marker = L.marker(pos, { icon: buoyIcon }).addTo(lakeMap);
-        
+
         // Create popup content
         const data = sensorData[sensor.id];
         const popupContent = `
@@ -1020,20 +1030,20 @@
             </div>
           </div>
         `;
-        
+
         marker.bindPopup(popupContent, {
           className: 'custom-popup'
         });
-        
+
         marker.on('click', () => selectSensor(sensor.id));
-        
+
         buoyMarkers[sensor.id] = marker;
       });
-      
+
       // Update zoom info on zoom change
       lakeMap.on('zoomend', updateZoomInfo);
       updateZoomInfo();
-      
+
       // Custom zoom controls
       document.getElementById('zoom-in-btn').addEventListener('click', () => lakeMap.zoomIn());
       document.getElementById('zoom-out-btn').addEventListener('click', () => lakeMap.zoomOut());
@@ -1044,7 +1054,7 @@
       // Add map type toggle button functionality
       let isSatellite = true;
       const mapTypeBtn = document.getElementById('reset-view-btn');
-      
+
       // Add a new button for map type toggle
       const mapTypeToggle = document.createElement('button');
       mapTypeToggle.className = 'map-control-btn';
@@ -1067,12 +1077,12 @@
       });
       document.querySelector('.map-controls').appendChild(mapTypeToggle);
     }
-    
+
     function updateZoomInfo() {
       const zoom = lakeMap.getZoom();
       document.getElementById('zoom-info').textContent = `Zoom: ${zoom} | Scroll to zoom, drag to pan`;
     }
-    
+
     function updateMarkerSelection(sensorId) {
       // Update all marker visuals
       document.querySelectorAll('.buoy-icon').forEach(icon => {
@@ -1089,21 +1099,21 @@
       const data = sensorData[sensorId];
       const history = [];
       const now = new Date();
-      
+
       // 8 readings per day: 00:00, 03:00, 06:00, 09:00, 12:00, 15:00, 18:00, 21:00
       const readingTimes = [0, 3, 6, 9, 12, 15, 18, 21];
-      
+
       // Generate data for last 7 days
       for (let day = 6; day >= 0; day--) {
         for (let timeIdx = 0; timeIdx < readingTimes.length; timeIdx++) {
           const readingDate = new Date(now);
           readingDate.setDate(readingDate.getDate() - day);
           readingDate.setHours(readingTimes[timeIdx], 0, 0, 0);
-          
+
           // Add some realistic variance based on time of day
           const timeVariance = Math.sin(timeIdx * Math.PI / 4) * 1.5;
           const randomVariance = (Math.random() - 0.5) * 0.8;
-          
+
           history.push({
             time: readingDate,
             temp: +(data.temp + timeVariance + randomVariance).toFixed(1),
@@ -1113,7 +1123,7 @@
           });
         }
       }
-      
+
       return history;
     }
 
@@ -1125,7 +1135,7 @@
     function updateChart(sensorId) {
       const history = generateHistoricalData(sensorId);
       const sensor = sensors.find(s => s.id === sensorId);
-      
+
       const trace1 = {
         x: history.map(h => h.time),
         y: history.map(h => h.temp),
@@ -1141,7 +1151,7 @@
           color: '#3b82f6'
         }
       };
-      
+
       const trace2 = {
         x: history.map(h => h.time),
         y: history.map(h => h.ph),
@@ -1158,7 +1168,7 @@
           color: '#10b981'
         }
       };
-      
+
       const trace3 = {
         x: history.map(h => h.time),
         y: history.map(h => h.oxygen),
@@ -1175,7 +1185,7 @@
           color: '#f59e0b'
         }
       };
-      
+
       const trace4 = {
         x: history.map(h => h.time),
         y: history.map(h => h.turbidity),
@@ -1192,7 +1202,7 @@
           color: '#ef4444'
         }
       };
-      
+
       const layout = {
         title: {
           text: `Water Quality Metrics - ${sensor.name} (${sensorId})`,
@@ -1258,24 +1268,24 @@
         margin: { l: 60, r: 150, t: 50, b: 60 },
         hovermode: 'x unified'
       };
-      
+
       const config = {
         responsive: true,
         displayModeBar: true,
         displaylogo: false,
         modeBarButtonsToRemove: ['lasso2d', 'select2d']
       };
-      
+
       Plotly.newPlot('trends-chart', [trace1, trace2, trace3, trace4], layout, config);
     }
 
     function selectSensor(sensorId) {
       selectedSensor = sensors.find(s => s.id === sensorId);
       const data = sensorData[sensorId];
-      
+
       // Update marker selection visual
       updateMarkerSelection(sensorId);
-      
+
       const detailPanel = document.getElementById('sensor-detail');
       detailPanel.innerHTML = `
         <div class="sensor-info">
@@ -1338,14 +1348,14 @@
           </div>
         </div>
       `;
-      
+
       updateChart(sensorId);
     }
 
     function populateTable() {
       const tbody = document.querySelector('#data-table tbody');
       tbody.innerHTML = '';
-      
+
       const timestamps = [
         '2024-12-10 21:00:00',
         '2024-12-10 18:00:00',
@@ -1354,11 +1364,11 @@
         '2024-12-10 09:00:00',
         '2024-12-10 06:00:00'
       ];
-      
+
       sensors.forEach((sensor, idx) => {
         const data = sensorData[sensor.id];
         const row = document.createElement('tr');
-        
+
         const variance = (Math.random() - 0.5) * 0.5;
         row.innerHTML = `
           <td><span class="status-indicator ${sensor.status}"></span>${sensor.name}</td>
@@ -1369,7 +1379,7 @@
           <td>${(data.turbidity + Math.abs(variance) * 0.5).toFixed(1)} NTU</td>
           <td><span class="status-badge ${sensor.status}">${sensor.status.toUpperCase()}</span></td>
         `;
-        
+
         tbody.appendChild(row);
       });
     }
@@ -1378,7 +1388,7 @@
     initChart();
     populateTable();
     renderLakeInsights();
-    
+
     setInterval(() => {
       populateTable();
     }, 10000);
@@ -1393,7 +1403,7 @@
       latestReadingContainer.style.display = 'block';
       latestReadingContainer.innerHTML = `
         <h4>Latest ESP32 Reading</h4>
-        <div class="status-text">Saved to Supabase • ${timestamp}</div>
+        <div class="status-text">Saved to Firebase • ${timestamp}</div>
         <div class="latest-grid">
           <div class="latest-metric">
             <span class="label">Temperature</span>
@@ -1434,7 +1444,7 @@
         try {
           const latest = await fetchLatestReading();
           renderLatestReading(latest);
-          requestStatus.textContent = 'Latest reading loaded from Supabase.';
+          requestStatus.textContent = 'Latest reading loaded from Firebase.';
           requestButton.disabled = false;
           return;
         } catch (error) {
@@ -1486,7 +1496,7 @@
       try {
         const latest = await fetchLatestReading();
         renderLatestReading(latest);
-        requestStatus.textContent = 'Latest reading loaded from Supabase.';
+        requestStatus.textContent = 'Latest reading loaded from Firebase.';
       } catch (error) {
         const unreachable = error.message.includes('Failed to fetch')
           ? 'Unable to reach the API. Please confirm connectivity.'
@@ -1495,12 +1505,30 @@
       }
     }
 
-    requestButton.addEventListener('click', requestEsp32Reading);
-    loadLatestButton.addEventListener('click', async () => {
-      loadLatestButton.disabled = true;
-      await loadLatestReading();
-      loadLatestButton.disabled = false;
-    });
+    function setupListeners() {
+      if (requestButton) {
+        requestButton.addEventListener('click', requestEsp32Reading);
+      } else {
+        console.warn('Button #request-reading-btn not found in DOM.');
+      }
+
+      if (loadLatestButton) {
+        loadLatestButton.addEventListener('click', async () => {
+          loadLatestButton.disabled = true;
+          await loadLatestReading();
+          loadLatestButton.disabled = false;
+        });
+      } else {
+        console.warn('Button #load-latest-btn not found in DOM.');
+      }
+    }
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', setupListeners);
+    } else {
+      setupListeners();
+    }
   </script>
 </body>
+
 </html>

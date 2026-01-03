@@ -5,6 +5,7 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 from sklearn.ensemble import IsolationForest
+from ai_utils import generate_narrative
 
 
 class LakeInput(BaseModel):
@@ -30,27 +31,48 @@ class FullAnomalyResponse(BaseModel):
 
 CSV_FILE = Path(__file__).resolve().parent / "sample_lake_readings.csv"
 
-df = pd.read_csv(CSV_FILE)
-df["timestamp"] = pd.to_datetime(df["timestamp"])
-df = df.sort_values("timestamp").reset_index(drop=True)
+from functools import lru_cache
 
-ph_mean, ph_std = df["ph"].mean(), df["ph"].std()
-turb_mean, turb_std = df["turbidity"].mean(), df["turbidity"].std()
-temp_mean, temp_std = df["temperature"].mean(), df["temperature"].std()
+@lru_cache(maxsize=1)
+def _get_anomaly_model_and_data():
+    """Lazy load data and model for anomaly detection."""
+    from firebase_client import get_firestore
+    try:
+        db = get_firestore()
+        docs = db.collection("lake_readings").order_by("timestamp", direction="DESCENDING").limit(200).stream()
+        data = [doc.to_dict() for doc in docs]
+        if len(data) > 20:
+            df = pd.DataFrame(data)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp").reset_index(drop=True)
+        else:
+            df = pd.read_csv(CSV_FILE)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp").reset_index(drop=True)
+    except Exception:
+        df = pd.read_csv(CSV_FILE)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp").reset_index(drop=True)
 
-if "do_level" in df.columns:
-    do_mean, do_std = df["do_level"].mean(), df["do_level"].std()
-else:
-    do_mean, do_std = None, None
+    ph_stats = (df["ph"].mean(), df["ph"].std())
+    turb_stats = (df["turbidity"].mean(), df["turbidity"].std())
+    temp_stats = (df["temperature"].mean(), df["temperature"].std())
 
-train_df = df[["ph", "turbidity", "temperature"]].ffill()
+    if "do_level" in df.columns:
+        do_stats = (df["do_level"].mean(), df["do_level"].std())
+    else:
+        do_stats = (None, None)
 
-ml_model = IsolationForest(
-    n_estimators=200,
-    contamination=0.03,
-    random_state=42,
-)
-ml_model.fit(train_df)
+    train_df = df[["ph", "turbidity", "temperature"]].ffill()
+
+    ml_model = IsolationForest(
+        n_estimators=200,
+        contamination=0.03,
+        random_state=42,
+    )
+    ml_model.fit(train_df)
+    
+    return ml_model, ph_stats, turb_stats, temp_stats, do_stats
 
 
 def _rule_check(
@@ -91,32 +113,49 @@ def _rule_check(
     )
 
 
-def _ml_check(ph: float, turb: float, temp: float) -> bool:
+def _ml_check(ml_model, ph: float, turb: float, temp: float) -> bool:
     point = np.array([[ph, turb, temp]])
     return bool(ml_model.predict(point)[0] == -1)
 
 
 def analyze_lake_reading(reading: LakeInput) -> FullAnomalyResponse:
     """Run rule-based + ML-based anomaly checks for one reading."""
-    ph_res = _rule_check(reading.ph, ph_mean, ph_std, "ph")
-    turb_res = _rule_check(reading.turbidity, turb_mean, turb_std, "turbidity")
-    temp_res = _rule_check(reading.temperature, temp_mean, temp_std, "temperature")
+    ml_model, ph_stats, turb_stats, temp_stats, do_stats = _get_anomaly_model_and_data()
 
-    if do_mean is not None and do_std is not None:
-        do_res = _rule_check(reading.do_level, do_mean, do_std, "do_level")
+    ph_res = _rule_check(reading.ph, ph_stats[0], ph_stats[1], "ph")
+    turb_res = _rule_check(reading.turbidity, turb_stats[0], turb_stats[1], "turbidity")
+    temp_res = _rule_check(reading.temperature, temp_stats[0], temp_stats[1], "temperature")
+
+    if do_stats[0] is not None and do_stats[1] is not None:
+        do_res = _rule_check(reading.do_level, do_stats[0], do_stats[1], "do_level")
     else:
         do_res = AnomalyResult(
             is_anomaly=False,
             severity="none",
-            reason="DO not measured; risk-only",
+            reason="DO not measured; baseline risk only",
         )
 
-    ml_res = _ml_check(reading.ph, reading.turbidity, reading.temperature)
+    ml_res = _ml_check(ml_model, reading.ph, reading.turbidity, reading.temperature)
+
+    if any([ph_res.is_anomaly, turb_res.is_anomaly, temp_res.is_anomaly, do_res.is_anomaly, ml_res]):
+        # Add AI detail if something is wrong
+        ai_reason = generate_narrative(
+            f"Given a lake reading with pH {reading.ph}, turbidity {reading.turbidity}, "
+            f"temperature {reading.temperature}, and DO {reading.do_level}, "
+            f"explain the primary concern if ph_anomaly={ph_res.is_anomaly}, "
+            f"turb_anomaly={turb_res.is_anomaly}, ml_anomaly={ml_res}. 1 sentence."
+        )
+        if ml_res:
+            pattern_reason = ai_reason
+        else:
+            pattern_reason = "Normal pattern"
+    else:
+        pattern_reason = "Normal pattern"
 
     pattern_anom = AnomalyResult(
         is_anomaly=ml_res,
         severity="high" if ml_res else "none",
-        reason="Multivariate anomaly detected" if ml_res else "Normal pattern",
+        reason=pattern_reason,
     )
 
     return FullAnomalyResponse(

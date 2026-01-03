@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -22,114 +23,173 @@
       --danger: #ef4444;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; }
-    
-    header { background: transparent; border-bottom: none; position: absolute; top: 0; width: 100%; z-index: 100; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .nav { display: flex; align-items: center; justify-content: center; padding: 32px 0; }
-    .logo { display: none; }
-    nav ul { list-style: none; display: flex; gap: 48px; }
-    nav a { 
-      color: rgba(255, 255, 255, 0.7); 
-      text-decoration: none; 
-      font-weight: 600; 
-      font-size: 0.9rem; 
-      text-transform: uppercase; 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      background: transparent;
+      border-bottom: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 0;
+    }
+
+    .logo {
+      display: none;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 48px;
+    }
+
+    nav a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 0.9rem;
+      text-transform: uppercase;
       letter-spacing: 1px;
       text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
       transition: color 0.2s;
     }
-    nav a:hover, nav a.active { color: white; }
-    
-    .main-content { padding: 120px 0 80px; }
-    
-    .page-header { margin-bottom: 48px; }
-    .page-header h1 { 
-      font-size: 1.75rem; 
+
+    nav a:hover,
+    nav a.active {
+      color: white;
+    }
+
+    .main-content {
+      padding: 120px 0 80px;
+    }
+
+    .page-header {
+      margin-bottom: 48px;
+    }
+
+    .page-header h1 {
+      font-size: 1.75rem;
       font-weight: 600;
       margin-bottom: 8px;
       letter-spacing: -0.025em;
     }
-    .page-header p { 
-      color: var(--text-muted); 
+
+    .page-header p {
+      color: var(--text-muted);
       font-size: 0.95rem;
       max-width: 560px;
     }
-    
-    .layout { 
-      display: grid; 
-      grid-template-columns: 340px 1fr; 
-      gap: 40px; 
+
+    .layout {
+      display: grid;
+      grid-template-columns: 340px 1fr;
+      gap: 40px;
       align-items: start;
     }
-    
+
     /* Form Panel */
-    .form-panel { 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      border-radius: 8px; 
+    .form-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
       padding: 24px;
     }
-    .form-panel h2 { 
-      font-size: 0.75rem; 
+
+    .form-panel h2 {
+      font-size: 0.75rem;
       font-weight: 600;
-      letter-spacing: 0.1em; 
-      text-transform: uppercase; 
-      color: var(--text-muted); 
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
       margin-bottom: 24px;
       padding-bottom: 12px;
       border-bottom: 1px solid var(--border);
     }
-    
+
     .field {
       margin-bottom: 20px;
     }
-    .field label { 
+
+    .field label {
       display: block;
-      color: var(--text-secondary); 
-      font-size: 0.85rem; 
+      color: var(--text-secondary);
+      font-size: 0.85rem;
       font-weight: 500;
       margin-bottom: 8px;
     }
-    .field input { 
-      width: 100%; 
+
+    .field input {
+      width: 100%;
       padding: 10px 12px;
-      border-radius: 6px; 
-      border: 1px solid var(--border); 
-      background: var(--bg); 
-      color: var(--text); 
+      border-radius: 6px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
       font-size: 0.95rem;
       font-family: inherit;
       transition: border-color 0.2s;
     }
+
     .field input:focus {
       outline: none;
       border-color: var(--primary);
     }
+
     .field .hint {
       font-size: 0.75rem;
       color: var(--text-muted);
       margin-top: 4px;
     }
-    
-    .submit-btn { 
+
+    .submit-btn {
       width: 100%;
       background: var(--primary);
-      color: white; 
-      border: none; 
-      padding: 12px 20px; 
-      border-radius: 6px; 
-      font-weight: 600; 
+      color: white;
+      border: none;
+      padding: 12px 20px;
+      border-radius: 6px;
+      font-weight: 600;
       font-size: 0.9rem;
       font-family: inherit;
-      cursor: pointer; 
+      cursor: pointer;
       transition: background 0.2s;
       margin-top: 8px;
     }
-    .submit-btn:hover { background: #2563eb; }
-    .submit-btn:disabled { opacity: 0.5; cursor: not-allowed; }
-    
+
+    .submit-btn:hover {
+      background: #2563eb;
+    }
+
+    .submit-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
     .status {
       margin-top: 16px;
       padding: 10px 12px;
@@ -138,19 +198,25 @@
       color: var(--text-muted);
       font-size: 0.8rem;
     }
-    .status.success { color: var(--success); }
-    .status.error { color: var(--danger); }
-    
+
+    .status.success {
+      color: var(--success);
+    }
+
+    .status.error {
+      color: var(--danger);
+    }
+
     /* Results */
-    .results-section h2 { 
-      font-size: 0.75rem; 
+    .results-section h2 {
+      font-size: 0.75rem;
       font-weight: 600;
-      letter-spacing: 0.1em; 
-      text-transform: uppercase; 
-      color: var(--text-muted); 
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-muted);
       margin-bottom: 16px;
     }
-    
+
     .empty-state {
       display: flex;
       align-items: center;
@@ -162,30 +228,33 @@
       color: var(--text-muted);
       font-size: 0.9rem;
     }
-    
+
     .results-grid {
       display: flex;
       flex-direction: column;
       gap: 12px;
     }
-    
+
     .result-card {
       background: var(--surface);
       border: 1px solid var(--border);
       border-radius: 8px;
       padding: 20px;
     }
+
     .result-card .header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       margin-bottom: 12px;
     }
-    .result-card h3 { 
-      font-size: 0.95rem; 
+
+    .result-card h3 {
+      font-size: 0.95rem;
       font-weight: 600;
       color: var(--text);
     }
+
     .result-card .tag {
       padding: 4px 10px;
       border-radius: 4px;
@@ -194,32 +263,54 @@
       text-transform: uppercase;
       letter-spacing: 0.05em;
     }
-    .tag.high { background: rgba(34, 197, 94, 0.15); color: var(--success); }
-    .tag.medium { background: rgba(234, 179, 8, 0.15); color: var(--warning); }
-    .tag.low { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
-    
+
+    .tag.high {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success);
+    }
+
+    .tag.medium {
+      background: rgba(234, 179, 8, 0.15);
+      color: var(--warning);
+    }
+
+    .tag.low {
+      background: rgba(239, 68, 68, 0.15);
+      color: var(--danger);
+    }
+
     .result-card .body {
       color: var(--text-secondary);
       font-size: 0.9rem;
       line-height: 1.6;
       margin-bottom: 12px;
     }
+
     .result-card .impact {
       color: var(--text-muted);
       font-size: 0.85rem;
       padding-left: 12px;
       border-left: 2px solid var(--border);
     }
-    
+
     @media (max-width: 900px) {
-      .layout { grid-template-columns: 1fr; }
+      .layout {
+        grid-template-columns: 1fr;
+      }
     }
+
     @media (max-width: 600px) {
-      nav ul { display: none; }
-      .page-header h1 { font-size: 1.5rem; }
+      nav ul {
+        display: none;
+      }
+
+      .page-header h1 {
+        font-size: 1.5rem;
+      }
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
@@ -244,7 +335,8 @@
     <div class="container">
       <div class="page-header">
         <h1>Digital Twin Simulation</h1>
-        <p>Run what-if scenarios to model dissolved oxygen levels, turbidity recovery, and ecological risk under various environmental conditions.</p>
+        <p>Run what-if scenarios to model dissolved oxygen levels, turbidity recovery, and ecological risk under various
+          environmental conditions.</p>
       </div>
 
       <div class="layout">
@@ -253,27 +345,29 @@
           <form id="sim-form">
             <div class="field">
               <label for="temperature_rise_c">Temperature Rise</label>
-              <input type="number" id="temperature_rise_c" name="temperature_rise_c" step="0.1" min="0" max="10" value="1.5" required>
+              <input type="number" id="temperature_rise_c" name="temperature_rise_c" step="0.1" min="0" max="10"
+                value="1.5" required>
               <div class="hint">Degrees Celsius above baseline</div>
             </div>
-            
+
             <div class="field">
               <label for="pollution_event_strength">Pollution Intensity</label>
-              <input type="number" id="pollution_event_strength" name="pollution_event_strength" step="0.05" min="0" max="1" value="0.35" required>
+              <input type="number" id="pollution_event_strength" name="pollution_event_strength" step="0.05" min="0"
+                max="1" value="0.35" required>
               <div class="hint">Scale from 0 (none) to 1 (severe)</div>
             </div>
-            
+
             <div class="field">
               <label for="rainfall_mm">Rainfall</label>
               <input type="number" id="rainfall_mm" name="rainfall_mm" step="1" min="0" max="200" value="20" required>
               <div class="hint">Millimeters over 24 hours</div>
             </div>
-            
+
             <button type="submit" class="submit-btn" id="sim-btn">Run Simulation</button>
           </form>
           <div class="status" id="sim-status">Configure parameters and run simulation</div>
         </div>
-        
+
         <div class="results-section">
           <h2>Results</h2>
           <div id="sim-results">
@@ -285,9 +379,9 @@
   </main>
 
   <script>
-    const API_BASE = 'https://slim-production.up.railway.app';
+    const API_BASE = 'http://127.0.0.1:8000';
     const API_HEADERS = { 'Content-Type': 'application/json', 'x-api-key': 'password' };
-    
+
     const simResults = document.getElementById('sim-results');
     const simStatus = document.getElementById('sim-status');
     const simBtn = document.getElementById('sim-btn');
@@ -317,7 +411,7 @@
       simBtn.textContent = 'Running...';
       simStatus.className = 'status';
       simStatus.textContent = 'Processing simulation...';
-      
+
       try {
         const res = await fetch(`${API_BASE}/api/digital-twin`, {
           method: 'POST',
@@ -326,7 +420,7 @@
         });
         if (!res.ok) throw new Error('API error');
         const data = await res.json();
-        
+
         simResults.innerHTML = `
           <div class="results-grid">
             ${renderCard('DO Drop Scenario', data.do_drop_scenario)}
@@ -336,13 +430,13 @@
             ${renderCard('Fish Mortality Risk', data.fish_mortality_risk)}
           </div>
         `;
-        
+
         simStatus.className = 'status success';
         simStatus.textContent = 'Simulation complete';
       } catch (err) {
         simStatus.className = 'status error';
         simStatus.textContent = 'Failed to reach API';
-        
+
         // Fallback sample data
         const sample = {
           do_drop_scenario: { description: 'Moderate DO decline expected within 24-48 hours', impact: 'DO levels may drop to 5.2 mg/L in deeper zones', confidence: 'Medium' },
@@ -351,7 +445,7 @@
           algae_bloom: { description: 'Elevated bloom risk due to nutrient influx', impact: 'Chlorophyll-a may exceed 25 μg/L in warm zones', confidence: 'Low' },
           fish_mortality_risk: { description: 'Minimal acute stress expected', impact: 'Monitor sensitive species in shallow areas', confidence: 'High' }
         };
-        
+
         simResults.innerHTML = `
           <div class="results-grid">
             ${renderCard('DO Drop Scenario', sample.do_drop_scenario)}
@@ -364,7 +458,7 @@
         simStatus.textContent = 'Showing sample results';
         simStatus.className = 'status';
       }
-      
+
       simBtn.disabled = false;
       simBtn.textContent = 'Run Simulation';
     }
@@ -379,4 +473,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+import traceback
 from typing import Dict, List, Optional, Tuple
 
 import pandas as pd
@@ -7,12 +8,13 @@ import torch
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
-from groq import Groq
+from google import genai
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
 from pytorch_forecasting import TimeSeriesDataSet
 from pytorch_forecasting.models import TemporalFusionTransformer
-from supabase_client import SupabaseConfigError, get_supabase
+from firebase_client import get_firestore
+from ai_utils import get_gemini_client
 from anomaly import (
     LakeInput,
     FullAnomalyResponse,
@@ -36,7 +38,7 @@ from event_detection import (
 )
 
 
-load_dotenv()
+load_dotenv(Path(__file__).resolve().parent.parent / ".env")
 API_KEY_ENV_VAR = "API_SECRET_KEY"
 ARTIFACT_DIR = Path(__file__).resolve().parent / "artifacts"
 TARGETS = ["ph", "turbidity", "temperature", "do_level"]
@@ -98,16 +100,51 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
+    allow_origins=["*", "null"],
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
+@app.get("/")
+def read_root():
+    return {"status": "online", "message": "SLIM AI Lake Data API is running"}
+
+
+@app.get("/api/health")
+def health_check():
+    return {"status": "ok"}
+
+
 def _load_base_dataframe() -> pd.DataFrame:
-    """Load and normalize lake readings from the local CSV."""
+    """Load and normalize lake readings from Firestore, fallback to CSV if empty."""
     data_path = Path(__file__).resolve().parent / "sample_lake_readings.csv"
+    
+    try:
+        db = get_firestore()
+        docs = (
+            db.collection("lake_readings")
+            .order_by("timestamp", direction="DESCENDING")
+            .limit(500)
+            .stream()
+        )
+        data = [doc.to_dict() for doc in docs]
+        if data:
+            df = pd.DataFrame(data)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp").reset_index(drop=True)
+            df["series_id"] = "buoy_1"
+            df["time_idx"] = (
+                (df["timestamp"] - df["timestamp"].min()).dt.total_seconds() // 3600
+            ).astype(int)
+            for column in TARGETS:
+                if column in df.columns:
+                    df[column] = df[column].interpolate().bfill().ffill()
+            return df
+    except Exception as e:
+        print(f"[main] Firestore load failed: {e}. Falling back to CSV.")
+
     if not data_path.exists():
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
@@ -115,59 +152,43 @@ def _load_base_dataframe() -> pd.DataFrame:
         )
 
     df = pd.read_csv(data_path)
-
-    if "timestamp" not in df.columns:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="CSV is missing the 'timestamp' column",
-        )
-
-    df["timestamp"] = pd.to_datetime(df["timestamp"])
-    df = df.sort_values("timestamp").reset_index(drop=True)
-    df["series_id"] = "buoy_1"
-    df["time_idx"] = (
-        (df["timestamp"] - df["timestamp"].min()).dt.total_seconds() // 3600
-    ).astype(int)
+    if "timestamp" in df.columns:
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp").reset_index(drop=True)
+        df["series_id"] = "buoy_1"
+        df["time_idx"] = (
+            (df["timestamp"] - df["timestamp"].min()).dt.total_seconds() // 3600
+        ).astype(int)
 
     for column in TARGETS:
-        if column not in df.columns:
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Column '{column}' missing from CSV",
-            )
-        df[column] = df[column].interpolate().bfill().ffill()
+        if column in df.columns:
+            df[column] = df[column].interpolate().bfill().ffill()
 
     return df
 
 
 def _format_dataset_summary(df: pd.DataFrame) -> str:
-    """Create a compact textual summary of the lake dataset for LLM prompts."""
+    """Create a simple textual summary of the dataset for LLM prompts."""
+    if df.empty:
+        return "No sensor data available."
 
     stats = []
-    for col in TARGETS:
+    available_cols = [c for c in TARGETS if c in df.columns]
+    for col in available_cols:
         col_data = df[col]
         stats.append(
             f"{col}: min={col_data.min():.2f}, max={col_data.max():.2f}, "
             f"mean={col_data.mean():.2f}, latest={col_data.iloc[-1]:.2f}"
         )
 
-    latest_ts = df["timestamp"].iloc[-1].isoformat()
-    return (
-        "Dataset summary for lake readings. "
-        f"Rows: {len(df)}; Time range: {df['timestamp'].min().isoformat()} to {latest_ts}. "
-        f"Columns: {', '.join(TARGETS)}. "
-        "Recent statistics: " + "; ".join(stats)
-    )
+    latest_ts = "unknown"
+    if "timestamp" in df.columns:
+        latest_ts = df["timestamp"].iloc[-1].isoformat()
+
+    return f"Latest Reading Time: {latest_ts}\nSummary Statistics:\n" + "\n".join(stats)
 
 
-def _get_groq_client() -> Groq:
-    api_key = os.getenv("GROQ_API_KEY")
-    if not api_key:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="GROQ_API_KEY is not configured on the server",
-        )
-    return Groq(api_key=api_key)
+# Consolidating Gemini setup via ai_utils
 
 
 def _sanitize_checkpoint(target: str, ckpt_path: Path) -> Path:
@@ -315,82 +336,112 @@ def ingest_lake_data(
     _: None = Depends(verify_api_key),
 ):
     try:
-        supabase = get_supabase()
-    except SupabaseConfigError as exc:
+        db = get_firestore()
+        # Firestore expects a dict, including a server timestamp if needed
+        data = reading.model_dump()
+        data["timestamp"] = pd.Timestamp.now().isoformat()
+        _, doc_ref = db.collection("lake_readings").add(data)
+        return {"message": "Data received", "id": doc_ref.id}
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         )
-    response = supabase.table("lake_readings").insert(reading.model_dump()).execute()
-
-    if getattr(response, "error", None):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(response.error),
-        )
-
-    return {"message": "Data received", "id": response.data[0].get("id")}
 
 
 @app.get("/api/lake-data/latest", response_model=LakeReadingResponse)
 def fetch_latest_reading():
     try:
-        supabase = get_supabase()
-    except SupabaseConfigError as exc:
+        db = get_firestore()
+        docs = (
+            db.collection("lake_readings")
+            .order_by("timestamp", direction="DESCENDING")
+            .limit(1)
+            .stream()
+        )
+        data = [doc.to_dict() for doc in docs]
+        if not data:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="No readings available",
+            )
+        # Firestore doesn't provide an 'id' integer by default, so we use document ID
+        res = data[0]
+        res["id"] = 0  # Dummy ID for compatibility
+        return res
+    except Exception as exc:
+        if isinstance(exc, HTTPException):
+            raise exc
+        print(f"[latest] Endpoint Error: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         )
-    response = (
-        supabase.table("lake_readings")
-        .select("id,timestamp,ph,turbidity,temperature,do_level")
-        .order("timestamp", desc=True)
-        .limit(1)
-        .execute()
-    )
-    if getattr(response, "error", None):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(response.error),
-        )
-    if not response.data:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="No readings available",
-        )
-
-    return response.data[0]
 
 
 @app.get("/api/lake-data/history", response_model=List[LakeReadingResponse])
 def fetch_reading_history(limit: int = Query(100, gt=0, le=500)):
     try:
-        supabase = get_supabase()
-    except SupabaseConfigError as exc:
+        db = get_firestore()
+        docs = (
+            db.collection("lake_readings")
+            .order_by("timestamp", direction="DESCENDING")
+            .limit(limit)
+            .stream()
+        )
+        results = []
+        for doc in docs:
+            d = doc.to_dict()
+            d["id"] = 0  # Dummy ID
+            results.append(d)
+        return results
+    except Exception as exc:
+        if isinstance(exc, HTTPException):
+            raise exc
+        print(f"[history] Endpoint Error: {traceback.format_exc()}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=str(exc),
         )
-    response = (
-        supabase.table("lake_readings")
-        .select("id,timestamp,ph,turbidity,temperature,do_level")
-        .order("timestamp", desc=True)
-        .limit(limit)
-        .execute()
-    )
-    if getattr(response, "error", None):
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=str(response.error),
-        )
-    return response.data
 
 
 @app.get("/forecast/all", response_model=ForecastResponse)
 def forecast_all():
-    """Forecast lake parameters using TFT models stored in artifacts/."""
-    base_df = _load_base_dataframe()
-    return _generate_forecast(base_df)
+    """Forecast lake parameters using TFT models or a linear fallback."""
+    try:
+        if not ARTIFACT_DIR.exists():
+            print("[forecast] ARTIFACT_DIR missing; using linear TSF fallback.")
+            return _generate_fallback_forecast()
+            
+        base_df = _load_base_dataframe()
+        return _generate_forecast(base_df)
+    except Exception as exc:
+        print(f"[{pd.Timestamp.now()}] Forecast Error: {traceback.format_exc()}")
+        # Final fallback to linear TSF logic if even _generate_forecast fails
+        try:
+            return _generate_fallback_forecast()
+        except Exception:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Forecast Error: {str(exc)}",
+            )
+
+
+def _generate_fallback_forecast() -> ForecastResponse:
+    """Uses linear/seasonal TSF logic as a fallback for the TFT forecast."""
+    from tsf import compute_tsf_forecast
+    tsf_data = compute_tsf_forecast()
+    
+    # Map TSF values to the ForecastResponse schema
+    return ForecastResponse(
+        forecast_timestamp=pd.Timestamp.now().isoformat(),
+        predictions=LakeReading(
+            ph=tsf_data.ph_forecast.value,
+            turbidity=tsf_data.turbidity_pattern.expected_value,
+            temperature=tsf_data.temperature_spike.expected_value,
+            do_level=tsf_data.do_forecast.value
+        )
+    )
 
 
 @app.post("/api/analyze", response_model=FullAnomalyResponse)
@@ -401,11 +452,11 @@ def analyze_lake_data(
     result = analyze_lake_reading(reading)
 
     try:
-        supabase = get_supabase()
+        db = get_firestore()
         row = anomaly_to_row(reading, result)
-        supabase.table("anomaly_results").insert(row).execute()
+        db.collection("anomaly_results").add(row)
     except Exception as e:
-        print(f"[anomaly] Error saving to Supabase: {e}")
+        print(f"[anomaly] Error saving to Firebase: {e}")
 
     return result
 
@@ -416,11 +467,11 @@ def get_cluster_patterns(
 ):
     """Return clustering, PCA, and seasonal pattern summaries."""
     try:
-        supabase = get_supabase()
-    except SupabaseConfigError:
-        supabase = None
+        db = get_firestore()
+    except Exception:
+        db = None
 
-    return compute_cluster_patterns(supabase=supabase)
+    return compute_cluster_patterns(db=db)
 
 
 @app.get("/api/relationships", response_model=RelationshipAnalysisResponse)
@@ -435,8 +486,14 @@ def get_relationship_analysis(
 @app.get("/api/research-models", response_model=ResearchModelResponse)
 def get_research_models(_: None = Depends(verify_api_key)):
     """Advanced research-grade models: GNNs, causal effects, and evaluation."""
-
-    return compute_research_models()
+    try:
+        return compute_research_models()
+    except Exception as e:
+        print(f"[research-models] Endpoint Error: {traceback.format_exc()}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Research Models Error: {str(e)}"
+        )
 
 
 @app.get("/api/tsf", response_model=TSFForecastResponse)
@@ -468,48 +525,89 @@ def run_event_detection(
     return detect_events(payload)
 
 
-@app.post("/api/data-query", response_model=DataQueryResponse)
-def query_lake_dataset(payload: DataQuery, _: None = Depends(verify_api_key)):
-    """Answer natural language questions about the lake CSV using Groq LLM."""
-
+@app.post("/api/expert-analysis", response_model=DataQueryResponse)
+def run_expert_lake_analysis(payload: DataQuery, _: None = Depends(verify_api_key)):
+    """Deep ecological analysis of lake health using Gemini for broader reasoning."""
     df = _load_base_dataframe()
     dataset_summary = _format_dataset_summary(df)
-    client = _get_groq_client()
+    client = get_gemini_client()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="GEMINI_API_KEY is not configured",
+        )
 
-    prompt = (
-        "You are an assistant helping with lake sensor analytics. "
-        "Use the provided dataset summary to answer the user's question succinctly. "
-        "If the question is unrelated to the data, politely say you can only answer "
-        "questions about the lake readings."
+    system_prompt = (
+        "You are 'SLIM AI Senior Ecology Specialist'. Provide a highly concise, data-driven analysis.\n\n"
+        "STRICT STRUCTURE:\n"
+        "1. CONCLUSION: [Single bold sentence identifying the status/suitability]\n"
+        "2. SCIENTIFIC REASONING: [3-4 short bullet points explaining the 'why' based on current data trends.]\n\n"
+        "Rules: No introductions. No fluff. Be direct and technical."
     )
 
     try:
-        completion = client.chat.completions.create(
-            model="llama-3.1-8b-instant",
-            messages=[
-                {"role": "system", "content": prompt},
-                {
-                    "role": "user",
-                    "content": f"Dataset summary: {dataset_summary}\nQuestion: {payload.question}",
-                },
-            ],
-            max_tokens=300,
-            temperature=0.2,
+        prompt = f"{system_prompt}\n\nDATA:\n{dataset_summary}\n\nQUESTION: {payload.question}"
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-preview-09-2025",
+            contents=prompt,
+            config={
+                "max_output_tokens": 1000,
+                "temperature": 0.2,
+                "safety_settings": [
+                    {"category": "HARM_CATEGORY_HARASSMENT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_HATE_SPEECH", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_SEXUALLY_EXPLICIT", "threshold": "BLOCK_NONE"},
+                    {"category": "HARM_CATEGORY_DANGEROUS_CONTENT", "threshold": "BLOCK_NONE"},
+                ]
+            },
+        )
+        if not response.text:
+            print(f"[Expert] Empty response from Gemini. Candidates: {response.candidates}")
+    except Exception as exc:
+        print(f"[Expert] Generation failed: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_502_BAD_GATEWAY,
+            detail=f"Expert analysis engine failed: {exc}",
+        )
+
+    message = response.text if response.text else "The analysis engine could not generate a response due to safety filters or empty completion."
+    return DataQueryResponse(answer=message)
+
+
+@app.post("/api/data-query", response_model=DataQueryResponse)
+def query_lake_dataset(payload: DataQuery, _: None = Depends(verify_api_key)):
+    """Handle standard quick-data questions with simplified reasoning."""
+    df = _load_base_dataframe()
+    dataset_summary = _format_dataset_summary(df)
+    client = get_gemini_client()
+    if not client:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="GEMINI_API_KEY is not configured",
+        )
+
+    system_prompt = (
+        "You are a simple lake data assistant. Use the dataset summary to answer "
+        "the question directly. Keep it brief."
+    )
+
+    try:
+        prompt = f"{system_prompt}\n\nDATA: {dataset_summary}\nQUESTION: {payload.question}"
+        response = client.models.generate_content(
+            model="gemini-2.5-flash-preview-09-2025",
+            contents=prompt,
+            config={
+                "max_output_tokens": 200,
+                "temperature": 0.1,
+            },
         )
     except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_502_BAD_GATEWAY,
-            detail=f"Groq request failed: {exc}",
+            detail=f"Data query failed: {exc}",
         )
 
-    message = completion.choices[0].message.content if completion.choices else ""
-    if not message:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Received empty response from Groq",
-        )
-
-    return DataQueryResponse(answer=message)
+    return DataQueryResponse(answer=response.text if response.text else "No data found.")
 
 
 class CommandResponse(BaseModel):

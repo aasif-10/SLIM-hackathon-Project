@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>SLIM AI | Lake Intelligence Platform</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&display=swap"
+    rel="stylesheet">
   <style>
     :root {
       --bg: #0a1628;
@@ -19,10 +22,10 @@
       --accent: #0ea5e9;
     }
 
-    * { 
-      box-sizing: border-box; 
-      margin: 0; 
-      padding: 0; 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
     }
 
     body {
@@ -164,9 +167,22 @@
     }
 
     @keyframes bounce {
-      0%, 20%, 50%, 80%, 100% { transform: rotate(-45deg) translateY(0); }
-      40% { transform: rotate(-45deg) translateY(10px); }
-      60% { transform: rotate(-45deg) translateY(5px); }
+
+      0%,
+      20%,
+      50%,
+      80%,
+      100% {
+        transform: rotate(-45deg) translateY(0);
+      }
+
+      40% {
+        transform: rotate(-45deg) translateY(10px);
+      }
+
+      60% {
+        transform: rotate(-45deg) translateY(5px);
+      }
     }
 
     h1 {
@@ -590,6 +606,7 @@
     }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
@@ -628,17 +645,20 @@
           <div class="stat-item">
             <div class="stat-label">Real-time Data</div>
             <div class="stat-title">Live Telemetry</div>
-            <div class="stat-desc">Continuous monitoring of pH, turbidity, temperature, and dissolved oxygen via FastAPI.</div>
+            <div class="stat-desc">Continuous monitoring of pH, turbidity, temperature, and dissolved oxygen via
+              FastAPI.</div>
           </div>
           <div class="stat-item">
             <div class="stat-label">Forecasting</div>
             <div class="stat-title">Predictive Models</div>
-            <div class="stat-desc">Temporal Fusion Transformer models provide interval-based water quality predictions.</div>
+            <div class="stat-desc">Temporal Fusion Transformer models provide interval-based water quality predictions.
+            </div>
           </div>
           <div class="stat-item">
             <div class="stat-label">Response</div>
             <div class="stat-title">Automated Alerts</div>
-            <div class="stat-desc">Context-aware notifications for pollution events, turbidity spikes, and equipment failures.</div>
+            <div class="stat-desc">Context-aware notifications for pollution events, turbidity spikes, and equipment
+              failures.</div>
           </div>
         </div>
       </div>
@@ -648,32 +668,38 @@
       <div class="container">
         <div class="section-header">
           <h2>Core Capabilities</h2>
-          <p class="section-desc">Comprehensive suite of monitoring, prediction, and simulation tools for proactive lake management.</p>
+          <p class="section-desc">Comprehensive suite of monitoring, prediction, and simulation tools for proactive lake
+            management.</p>
         </div>
         <div class="grid">
           <div class="card">
             <h3>Prediction Engine</h3>
-            <p>Time-series forecasting using Temporal Fusion Transformers with signal-specific checkpoints for accurate water quality predictions.</p>
+            <p>Time-series forecasting using Temporal Fusion Transformers with signal-specific checkpoints for accurate
+              water quality predictions.</p>
           </div>
           <div class="card">
             <h3>Live Dashboard</h3>
-            <p>Real-time visualization of sensor streams with rolling statistics, trend analysis, and historical comparisons.</p>
+            <p>Real-time visualization of sensor streams with rolling statistics, trend analysis, and historical
+              comparisons.</p>
           </div>
           <div class="card">
             <h3>Anomaly Detection</h3>
-            <p>Multi-layer anomaly identification with severity scoring, root cause analysis, and remediation recommendations.</p>
+            <p>Multi-layer anomaly identification with severity scoring, root cause analysis, and remediation
+              recommendations.</p>
           </div>
           <div class="card">
             <h3>Research Tools</h3>
-            <p>Clustering analysis, correlation mapping, and model comparison endpoints for data exploration and validation.</p>
+            <p>Question answering on datasets powered by Google Gemini 3 Flash Large Language Model.</p>
           </div>
           <div class="card">
             <h3>Digital Twin</h3>
-            <p>Simulate pollution events, temperature changes, and rainfall impacts to evaluate intervention strategies.</p>
+            <p>Simulate pollution events, temperature changes, and rainfall impacts to evaluate intervention strategies.
+            </p>
           </div>
           <div class="card">
             <h3>Event Detection</h3>
-            <p>Automated classification of pollution inflows, turbidity events, and equipment failures with urgency levels.</p>
+            <p>Automated classification of pollution inflows, turbidity events, and equipment failures with urgency
+              levels.</p>
           </div>
         </div>
       </div>
@@ -683,33 +709,40 @@
       <div class="container">
         <div class="section-header">
           <h2>API Architecture</h2>
-          <p class="section-desc">RESTful endpoints for data ingestion, forecasting, analysis, and simulation with comprehensive payload support.</p>
+          <p class="section-desc">RESTful endpoints for data ingestion, forecasting, analysis, and simulation with
+            comprehensive payload support.</p>
         </div>
 
         <div class="api-grid">
           <div class="api-item">
             <div class="api-endpoint">POST /api/forecast</div>
-            <div class="api-desc">Generate next-interval predictions with ISO8601 timestamps and structured metadata per target parameter.</div>
+            <div class="api-desc">Generate next-interval predictions with ISO8601 timestamps and structured metadata per
+              target parameter.</div>
           </div>
           <div class="api-item">
             <div class="api-endpoint">GET /api/lake-data/history</div>
-            <div class="api-desc">Retrieve historical sensor data with configurable time ranges, interpolation, and rolling statistics.</div>
+            <div class="api-desc">Retrieve historical sensor data with configurable time ranges, interpolation, and
+              rolling statistics.</div>
           </div>
           <div class="api-item">
             <div class="api-endpoint">POST /api/analyze</div>
-            <div class="api-desc">Anomaly analysis with severity classification, root cause hypotheses, and remediation guidance.</div>
+            <div class="api-desc">Anomaly analysis with severity classification, root cause hypotheses, and remediation
+              guidance.</div>
           </div>
           <div class="api-item">
             <div class="api-endpoint">POST /api/digital-twin</div>
-            <div class="api-desc">Run what-if scenarios including pollution slugs, temperature spikes, and rainfall recovery simulations.</div>
+            <div class="api-desc">Run what-if scenarios including pollution slugs, temperature spikes, and rainfall
+              recovery simulations.</div>
           </div>
           <div class="api-item">
             <div class="api-endpoint">POST /api/event-detection</div>
-            <div class="api-desc">Detect and classify water quality events with urgency scoring and contextual evidence.</div>
+            <div class="api-desc">Detect and classify water quality events with urgency scoring and contextual evidence.
+            </div>
           </div>
           <div class="api-item">
             <div class="api-endpoint">POST /api/data-query</div>
-            <div class="api-desc">Natural language analytics powered by Groq LLM for narrative pattern interpretation.</div>
+            <div class="api-desc">Natural language dataset query engine powered by Google Gemini 3 Flash for instant
+              semantic analysis.</div>
           </div>
         </div>
       </div>
@@ -720,7 +753,8 @@
         <div class="cta-box">
           <div class="badge">Production Ready</div>
           <h2>Deploy in Days</h2>
-          <p>Complete backend infrastructure with sensor integration, predictive analytics, and real-time monitoring capabilities.</p>
+          <p>Complete backend infrastructure with sensor integration, predictive analytics, and real-time monitoring
+            capabilities.</p>
           <div class="button-group" style="justify-content: center;">
             <a href="mailto:hello@slim.ai" class="btn btn-primary">Schedule Demo</a>
             <a href="https://github.com/" class="btn btn-secondary">Documentation</a>
@@ -736,4 +770,5 @@
     </div>
   </footer>
 </body>
+
 </html>

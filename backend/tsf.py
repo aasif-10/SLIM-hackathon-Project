@@ -8,10 +8,31 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 
+from firebase_client import get_firestore
+
 CSV_FILE = Path(__file__).resolve().parent / "sample_lake_readings.csv"
 
 
-def _load_frame() -> pd.DataFrame:
+def _load_data() -> pd.DataFrame:
+    """Load data from Firestore if available, else fallback to CSV."""
+    try:
+        db = get_firestore()
+        docs = (
+            db.collection("lake_readings")
+            .order_by("timestamp", direction="DESCENDING")
+            .limit(500)
+            .stream()
+        )
+        data = [doc.to_dict() for doc in docs]
+        if data:
+            df = pd.DataFrame(data)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp").reset_index(drop=True)
+            df["time_idx"] = (df["timestamp"] - df["timestamp"].min()).dt.total_seconds() / 3600
+            return df
+    except Exception as e:
+        print(f"[tsf] Firestore load failed: {e}. Falling back to CSV.")
+    
     df = pd.read_csv(CSV_FILE)
     df["timestamp"] = pd.to_datetime(df["timestamp"])
     df = df.sort_values("timestamp").reset_index(drop=True)
@@ -89,7 +110,13 @@ def _health_index(df: pd.DataFrame) -> pd.Series:
 
 
 def compute_tsf_forecast() -> TSFForecastResponse:
-    df = _load_frame()
+    df = _load_data()
+    # If very little data from Firestore, ensure we have enough for meaningful analysis
+    if len(df) < 10:
+        df = pd.read_csv(CSV_FILE)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp").reset_index(drop=True)
+        df["time_idx"] = (df["timestamp"] - df["timestamp"].min()).dt.total_seconds() / 3600
     step_hours = _step_hours(df)
     hours = df["time_idx"]
 

@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -20,57 +21,202 @@
       --danger: #ef4444;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; }
-    header { background: transparent; border-bottom: none; position: absolute; top: 0; width: 100%; z-index: 100; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .nav { display: flex; align-items: center; justify-content: center; padding: 32px 0; }
-    .logo { display: none; }
-    nav ul { list-style: none; display: flex; gap: 48px; }
-    nav a { color: rgba(255, 255, 255, 0.7); text-decoration: none; font-weight: 600; transition: color 0.2s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-    nav a:hover, nav a.active { color: white; }
-    .main-content { padding: 140px 0 64px; }
-    .page-header { margin-bottom: 24px; }
-    .page-header h1 { font-size: 2rem; margin-bottom: 8px; }
-    .page-header p { color: var(--text-muted); }
-    
-    .alerts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 16px; margin-top: 24px; }
-    
-    .alert-card { 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      border-radius: 10px; 
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
+
+    header {
+      background: transparent;
+      border-bottom: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
+
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 0;
+    }
+
+    .logo {
+      display: none;
+    }
+
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 48px;
+    }
+
+    nav a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: white;
+    }
+
+    .main-content {
+      padding: 140px 0 64px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+    }
+
+    .alerts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+      gap: 16px;
+      margin-top: 24px;
+    }
+
+    .alert-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
       padding: 20px;
       transition: border-color 0.2s;
     }
-    .alert-card.high { border-left: 4px solid var(--danger); }
-    .alert-card.medium { border-left: 4px solid var(--warning); }
-    .alert-card.low { border-left: 4px solid var(--primary); }
-    .alert-card.none { border-left: 4px solid var(--success); }
-    
-    .alert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-    .alert-title { font-size: 1.1rem; font-weight: 600; }
-    .alert-time { font-size: 0.8rem; color: var(--text-muted); }
-    
-    .alert-sensor { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 10px; }
-    
-    .alert-description { font-size: 0.95rem; color: var(--text); margin-bottom: 14px; line-height: 1.5; }
-    
-    .alert-footer { display: flex; justify-content: space-between; align-items: center; }
-    
-    .pill { display: inline-block; padding: 5px 12px; border-radius: 999px; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; }
-    .pill.none { background: rgba(16,185,129,0.15); color: var(--success); border: 1px solid rgba(16,185,129,0.5); }
-    .pill.low { background: rgba(59,130,246,0.15); color: var(--primary); border: 1px solid rgba(59,130,246,0.5); }
-    .pill.medium { background: rgba(245,158,11,0.2); color: var(--warning); border: 1px solid rgba(245,158,11,0.5); }
-    .pill.high { background: rgba(239,68,68,0.2); color: var(--danger); border: 1px solid rgba(239,68,68,0.5); }
-    
-    .alert-metrics { display: flex; gap: 16px; font-size: 0.8rem; color: var(--text-muted); }
-    .alert-metrics span { display: flex; align-items: center; gap: 4px; }
-    
-    .summary-bar { 
-      background: var(--surface); 
-      border: 1px solid var(--border); 
-      border-radius: 10px; 
+
+    .alert-card.high {
+      border-left: 4px solid var(--danger);
+    }
+
+    .alert-card.medium {
+      border-left: 4px solid var(--warning);
+    }
+
+    .alert-card.low {
+      border-left: 4px solid var(--primary);
+    }
+
+    .alert-card.none {
+      border-left: 4px solid var(--success);
+    }
+
+    .alert-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+
+    .alert-title {
+      font-size: 1.1rem;
+      font-weight: 600;
+    }
+
+    .alert-time {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .alert-sensor {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      margin-bottom: 10px;
+    }
+
+    .alert-description {
+      font-size: 0.95rem;
+      color: var(--text);
+      margin-bottom: 14px;
+      line-height: 1.5;
+    }
+
+    .alert-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 5px 12px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .pill.none {
+      background: rgba(16, 185, 129, 0.15);
+      color: var(--success);
+      border: 1px solid rgba(16, 185, 129, 0.5);
+    }
+
+    .pill.low {
+      background: rgba(59, 130, 246, 0.15);
+      color: var(--primary);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+    }
+
+    .pill.medium {
+      background: rgba(245, 158, 11, 0.2);
+      color: var(--warning);
+      border: 1px solid rgba(245, 158, 11, 0.5);
+    }
+
+    .pill.high {
+      background: rgba(239, 68, 68, 0.2);
+      color: var(--danger);
+      border: 1px solid rgba(239, 68, 68, 0.5);
+    }
+
+    .alert-metrics {
+      display: flex;
+      gap: 16px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .alert-metrics span {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .summary-bar {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
       padding: 20px;
       display: flex;
       justify-content: space-between;
@@ -78,18 +224,51 @@
       flex-wrap: wrap;
       gap: 16px;
     }
-    .summary-stats { display: flex; gap: 32px; }
-    .stat-item { text-align: center; }
-    .stat-value { font-size: 1.5rem; font-weight: 700; }
-    .stat-value.high { color: var(--danger); }
-    .stat-value.medium { color: var(--warning); }
-    .stat-value.low { color: var(--primary); }
-    .stat-value.clear { color: var(--success); }
-    .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; }
-    
-    .last-update { font-size: 0.85rem; color: var(--text-muted); }
+
+    .summary-stats {
+      display: flex;
+      gap: 32px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-value {
+      font-size: 1.5rem;
+      font-weight: 700;
+    }
+
+    .stat-value.high {
+      color: var(--danger);
+    }
+
+    .stat-value.medium {
+      color: var(--warning);
+    }
+
+    .stat-value.low {
+      color: var(--primary);
+    }
+
+    .stat-value.clear {
+      color: var(--success);
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .last-update {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
@@ -115,7 +294,8 @@
     <div class="container">
       <div class="page-header">
         <h1>Event Alerts</h1>
-        <p>Real-time monitoring alerts from all lake sensors detecting polluted inflow, aerator faults, and environmental anomalies.</p>
+        <p>Real-time monitoring alerts from all lake sensors detecting polluted inflow, aerator faults, and
+          environmental anomalies.</p>
       </div>
 
       <div class="summary-bar">
@@ -284,7 +464,7 @@
       mockAlerts.forEach(alert => {
         counts[alert.severity]++;
       });
-      
+
       document.getElementById('high-count').textContent = counts.high;
       document.getElementById('medium-count').textContent = counts.medium;
       document.getElementById('low-count').textContent = counts.low;
@@ -298,12 +478,12 @@
         const order = { high: 0, medium: 1, low: 2, none: 3 };
         return order[a.severity] - order[b.severity];
       });
-      
+
       container.innerHTML = sortedAlerts.map(renderAlert).join('');
       updateSummaryCounts();
-      
+
       const now = new Date();
-      document.getElementById('last-update').textContent = 
+      document.getElementById('last-update').textContent =
         `Last updated: ${now.toLocaleTimeString()}`;
     }
 
@@ -312,9 +492,10 @@
 
     // Simulate periodic updates
     setInterval(() => {
-      document.getElementById('last-update').textContent = 
+      document.getElementById('last-update').textContent =
         `Last updated: ${new Date().toLocaleTimeString()}`;
     }, 60000);
   </script>
 </body>
+
 </html>

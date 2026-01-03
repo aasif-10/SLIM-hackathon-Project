@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -21,45 +22,336 @@
       --danger: #ef4444;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
-    body { background: var(--bg); color: var(--text); font-family: 'Inter', sans-serif; line-height: 1.6; }
-    header { background: transparent; border-bottom: none; position: absolute; top: 0; width: 100%; z-index: 100; }
-    .container { max-width: 1200px; margin: 0 auto; padding: 0 24px; }
-    .nav { display: flex; align-items: center; justify-content: center; padding: 32px 0; }
-    .logo { display: none; }
-    nav ul { list-style: none; display: flex; gap: 48px; }
-    nav a { color: rgba(255, 255, 255, 0.7); text-decoration: none; font-weight: 600; transition: color 0.2s; text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }
-    nav a:hover, nav a.active { color: white; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
 
-    .main-content { padding: 140px 0 64px; }
-    .page-header { margin-bottom: 24px; }
-    .page-header h1 { font-size: 2rem; margin-bottom: 8px; }
-    .page-header p { color: var(--text-muted); }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', sans-serif;
+      line-height: 1.6;
+    }
 
-    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
-    .panel { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 20px; }
-    .panel h2 { font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); margin-bottom: 14px; }
+    header {
+      background: transparent;
+      border-bottom: none;
+      position: absolute;
+      top: 0;
+      width: 100%;
+      z-index: 100;
+    }
 
-    textarea { width: 100%; min-height: 140px; border-radius: 10px; border: 1px solid var(--border); background: #0f1c30; color: var(--text); padding: 12px; font-size: 1rem; resize: vertical; }
-    button { background: var(--primary); color: white; border: none; padding: 12px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: background 0.2s, transform 0.2s; }
-    button:hover { background: #2563eb; transform: translateY(-1px); }
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 24px;
+    }
 
-    .status { margin-top: 10px; color: var(--text-muted); font-size: 0.95rem; }
-    .answer { margin-top: 12px; padding: 14px; border-radius: 10px; background: #0f1c30; border: 1px solid var(--border); }
-    .answer h3 { font-size: 1rem; margin-bottom: 8px; }
-    .answer p { color: var(--text); }
+    .nav {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 0;
+    }
 
-    .chart-box { position: relative; height: 340px; }
-    .stat-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 10px; margin-top: 14px; }
-    .chip { padding: 12px; border-radius: 10px; border: 1px solid var(--border); background: #0f1c30; }
-    .chip h4 { font-size: 0.95rem; margin-bottom: 6px; }
-    .chip p { color: var(--text-muted); font-size: 0.9rem; }
+    .logo {
+      display: none;
+    }
 
-    .muted { color: var(--text-muted); }
+    nav ul {
+      list-style: none;
+      display: flex;
+      gap: 48px;
+    }
 
-    @media (max-width: 960px) { .grid { grid-template-columns: 1fr; } }
+    nav a {
+      color: rgba(255, 255, 255, 0.7);
+      text-decoration: none;
+      font-weight: 600;
+      transition: color 0.2s;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+      font-size: 0.9rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    nav a:hover,
+    nav a.active {
+      color: white;
+    }
+
+    .main-content {
+      padding: 140px 0 64px;
+    }
+
+    .page-header {
+      margin-bottom: 24px;
+    }
+
+    .page-header h1 {
+      font-size: 2rem;
+      margin-bottom: 8px;
+    }
+
+    .page-header p {
+      color: var(--text-muted);
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 20px;
+    }
+
+    .panel h2 {
+      font-size: 1rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 140px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1c30;
+      color: var(--text);
+      padding: 12px;
+      font-size: 1rem;
+      resize: vertical;
+    }
+
+    button {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 12px 16px;
+      border-radius: 8px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    button:hover {
+      background: #2563eb;
+      transform: translateY(-1px);
+    }
+
+    .status {
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .answer {
+      margin-top: 12px;
+      padding: 14px;
+      border-radius: 10px;
+      background: #0f1c30;
+      border: 1px solid var(--border);
+    }
+
+    .answer h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+
+    .answer p {
+      color: var(--text);
+    }
+
+    .reasoning-box {
+      margin-top: 15px;
+      padding: 12px;
+      background: rgba(59, 130, 246, 0.05);
+      border-left: 3px solid var(--primary);
+      border-radius: 4px;
+      font-style: italic;
+      color: var(--text-muted);
+      font-size: 0.95rem;
+    }
+
+    .example-tag {
+      display: inline-block;
+      padding: 6px 12px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      font-size: 0.85rem;
+      color: var(--primary);
+      cursor: pointer;
+      margin: 4px;
+      transition: all 0.2s;
+    }
+
+    .example-tag:hover {
+      border-color: var(--primary);
+      background: rgba(59, 130, 246, 0.1);
+    }
+
+    .chart-box {
+      position: relative;
+      height: 340px;
+    }
+
+    .stat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 10px;
+      margin-top: 14px;
+    }
+
+    .chip {
+      padding: 12px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: #0f1c30;
+    }
+
+    .chip h4 {
+      font-size: 0.95rem;
+      margin-bottom: 6px;
+    }
+
+    .chip p {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .muted {
+      color: var(--text-muted);
+    }
+
+    /* Expert Chat Styles */
+    .expert-chat-container {
+      margin-top: 24px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+    }
+
+    .chat-header {
+      padding: 12px 16px;
+      background: rgba(59, 130, 246, 0.1);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .chat-messages {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .message {
+      max-width: 85%;
+      padding: 10px 14px;
+      border-radius: 10px;
+      font-size: 0.9rem;
+      line-height: 1.5;
+    }
+
+    .message.user {
+      align-self: flex-end;
+      background: var(--primary);
+      color: white;
+      border-bottom-right-radius: 2px;
+    }
+
+    .message.ai {
+      align-self: flex-start;
+      background: #1e293b;
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-bottom-left-radius: 2px;
+    }
+
+    .chat-input-area {
+      padding: 12px 16px;
+      background: #0f1c30;
+      border-top: 1px solid var(--border);
+      display: flex;
+      gap: 10px;
+    }
+
+    .chat-input {
+      flex: 1;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 12px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      font-size: 0.9rem;
+    }
+
+    .chat-input:focus {
+      border-color: var(--primary);
+    }
+
+    .chat-send-btn {
+      background: var(--primary);
+      color: white;
+      border: none;
+      padding: 0 16px;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+      font-size: 0.85rem;
+    }
+
+    .reasoning-label {
+      display: block;
+      margin-top: 8px;
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--primary);
+      font-weight: 700;
+    }
+
+    .scientific-reasoning {
+      margin-top: 6px;
+      padding: 10px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      border-left: 2px solid var(--primary);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 960px) {
+      .grid {
+        grid-template-columns: 1fr;
+      }
+    }
   </style>
 </head>
+
 <body>
   <header>
     <div class="container">
@@ -85,21 +377,52 @@
     <div class="container">
       <div class="page-header">
         <h1>Query the Lake Data</h1>
-        <p>Ask the LLM about trends in the lake readings and pair the response with a live graph analysis.</p>
+        <p>Ask Gemini about trends in the lake readings and pair the response with a live graph analysis.</p>
       </div>
 
       <div class="grid">
         <div class="panel">
-          <h2>Ask the dataset</h2>
-          <form id="query-form">
-            <label class="muted" for="query">Question</label>
-            <textarea id="query" name="query" placeholder="e.g., How has turbidity changed over the last few readings?" required></textarea>
-            <button type="submit" style="margin-top: 10px;">Send to LLM</button>
-          </form>
-          <div class="status" id="query-status">Connected to https://slim-production.up.railway.app/api/data-query</div>
+          <h2>Quick Data Insights</h2>
+          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
+            <p class="muted" style="font-size: 0.9rem;">Select a common question to query live data:</p>
+            <div id="quick-queries" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <button class="query-btn" data-q="What is the current pH level?">Current pH</button>
+              <button class="query-btn" data-q="Show the latest turbidity reading.">Latest Turbidity</button>
+              <button class="query-btn" data-q="What is the average oxygen level recently?">Avg Oxygen</button>
+              <button class="query-btn" data-q="Compare current temp to the start of the series.">Temp Change</button>
+            </div>
+          </div>
+
+          <div
+            style="padding: 16px; background: rgba(59, 130, 246, 0.05); border: 1px solid var(--border); border-radius: 12px;">
+            <h3 style="font-size: 1rem; color: var(--primary); margin-bottom: 8px;">Expert Ecology Analysis</h3>
+            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Ask broader questions about
+              irrigation, fishing, or long-term trends below.</p>
+
+            <div id="expert-chat" class="expert-chat-container">
+              <div class="chat-header">
+                <div style="display: flex; align-items: center; gap: 8px;">
+                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></div>
+                  <strong style="font-size: 0.9rem;">Ecology specialist</strong>
+                </div>
+              </div>
+              <div class="chat-messages" id="chat-messages">
+                <div class="message ai">
+                  Hello! I analyze complex data trends for deep insights. Ask me about the lake's condition or risks.
+                </div>
+              </div>
+              <div class="chat-input-area">
+                <input type="text" id="chat-input" class="chat-input"
+                  placeholder="e.g. Is the lake suitable for irrigation today?">
+                <button id="chat-send-btn" class="chat-send-btn">Ask</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="status" id="query-status">System ready.</div>
           <div class="answer" id="query-answer">
-            <h3>LLM Answer</h3>
-            <p class="muted">Waiting for a prompt...</p>
+            <h3>Quick Answer</h3>
+            <p class="muted">Select a button above to get an instant answer.</p>
           </div>
         </div>
 
@@ -108,7 +431,8 @@
             <h2>Graph analysis</h2>
             <button type="button" id="load-history-btn">Load history</button>
           </div>
-          <div class="status" id="history-status">History not loaded yet. Click Load history to fetch recent readings.</div>
+          <div class="status" id="history-status">History not loaded yet. Click Load history to fetch recent readings.
+          </div>
           <div class="chart-box"><canvas id="historyChart"></canvas></div>
           <div class="stat-grid" id="stat-grid"></div>
         </div>
@@ -117,14 +441,13 @@
   </main>
 
   <script>
-    const API_BASE = 'https://slim-production.up.railway.app';
+    const API_BASE = 'http://127.0.0.1:8000';
     const API_HEADERS = {
       'Content-Type': 'application/json',
       'x-api-key': 'password'
     };
 
-    const form = document.getElementById('query-form');
-    const queryInput = document.getElementById('query');
+    const queryBtns = document.querySelectorAll('.query-btn');
     const statusLine = document.getElementById('query-status');
     const answerBlock = document.getElementById('query-answer');
     const statGrid = document.getElementById('stat-grid');
@@ -136,10 +459,10 @@
     function renderAnswer(text) {
       answerBlock.innerHTML = `
         <h3>LLM Answer</h3>
-        <p>${text}</p>
-        <div class="answer" style="margin-top:10px; background: #0c1a2c;">
-          <h3 style="margin-bottom:6px;">Graph analysis</h3>
-          <p class="muted">${graphSummary}</p>
+        <p style="color: var(--text);">${text.replace(/\n/g, '<br>')}</p>
+        <div class="answer" style="margin-top:20px; background: rgba(0,0,0,0.2); border: 1px dashed var(--border);">
+          <h3 style="margin-bottom:6px; color: var(--primary);">Data Grounding</h3>
+          <p class="muted" style="font-size: 0.9rem;">${graphSummary}</p>
         </div>
       `;
     }
@@ -213,18 +536,95 @@
         });
 
         buildStats(sorted);
-        renderAnswer('Graph context refreshed. Ask a question to blend LLM insight with these trends.');
+        renderAnswer('Graph context refreshed. Select a quick data button to query live trends.');
         if (historyStatus) historyStatus.textContent = 'History loaded from /api/lake-data/history.';
       } catch (err) {
         graphSummary = 'Unable to load sensor history. The graph will be empty until the API responds.';
         statGrid.innerHTML = '<div class="chip"><h4>History unavailable</h4><p>Check API connectivity.</p></div>';
-        renderAnswer('Waiting on graph data. You can still ask the LLM about the dataset summary.');
+        renderAnswer('Waiting on graph data. Insights will use baseline context if available.');
         if (historyStatus) historyStatus.textContent = 'History request failed. Try again when the API is reachable.';
       }
     }
 
+    // Expert Chat Logic for query.html
+    const chatInput = document.getElementById('chat-input');
+    const chatSendBtn = document.getElementById('chat-send-btn');
+    const chatMessages = document.getElementById('chat-messages');
+
+    async function askExpert() {
+      const question = chatInput.value.trim();
+      if (!question) return;
+
+      addMessage(question, 'user');
+      chatInput.value = '';
+      const loadingMsg = addMessage('Analyzing ecological interactions...', 'ai');
+
+      try {
+        const res = await fetch(`${API_BASE}/api/expert-analysis`, {
+          method: 'POST',
+          headers: API_HEADERS,
+          body: JSON.stringify({ question })
+        });
+
+        if (!res.ok) throw new Error('Expert engine failed');
+        const data = await res.json();
+        loadingMsg.remove();
+
+        if (data.answer.includes('SCIENTIFIC REASONING')) {
+          const parts = data.answer.split('SCIENTIFIC REASONING');
+          addExpertMessage(parts[parts.length - 2], parts[parts.length - 1]);
+        } else {
+          addMessage(data.answer, 'ai');
+        }
+      } catch (err) {
+        loadingMsg.textContent = 'Expert system connection failed. Ensure the server is online.';
+      }
+    }
+
+    function addMessage(text, type) {
+      const msg = document.createElement('div');
+      msg.className = `message ${type}`;
+      msg.textContent = text;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+      return msg;
+    }
+
+    function addExpertMessage(conclusion, reasoning) {
+      const msg = document.createElement('div');
+      msg.className = 'message ai';
+
+      // Clean up the conclusion text (remove CONCLUSION: tag if LLM included it)
+      let cleanConclusion = conclusion.replace(/CONCLUSION:?\s*/i, '').trim();
+      // Simple markdown bold replacement
+      cleanConclusion = cleanConclusion.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+      // Clean up reasoning (remove SCIENTIFIC REASONING: tag if LLM included it)
+      let cleanReasoning = reasoning.replace(/SCIENTIFIC REASONING:?\s*/i, '').trim();
+      // Handle bullets and bolding in reasoning
+      const formattedReasoning = cleanReasoning
+        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+        .replace(/^\s*[\-\*]\s*(.*)/gm, '<li>$1</li>')
+        .replace(/\n+/g, '<br>');
+
+      msg.innerHTML = `
+        <div style="font-size: 0.95rem; line-height: 1.4;">${cleanConclusion}</div>
+        <span class="reasoning-label" style="font-size: 0.65rem; color: var(--primary); font-weight: 800; margin-top: 10px; display: block;">GROUNDED REASONING</span>
+        <div class="scientific-reasoning" style="font-size: 0.82rem; color: var(--text-muted); padding-left: 10px; border-left: 2px solid var(--primary); margin-top: 5px;">
+          ${formattedReasoning.includes('<li>') ? `<ul style="margin: 0; padding-left: 15px;">${formattedReasoning}</ul>` : formattedReasoning}
+        </div>
+      `;
+      chatMessages.appendChild(msg);
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+
+    chatSendBtn.addEventListener('click', askExpert);
+    chatInput.addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') askExpert();
+    });
+
     async function submitQuery(question) {
-      statusLine.textContent = 'Sending to Groq...';
+      statusLine.textContent = 'Querying live data...';
       try {
         const res = await fetch(`${API_BASE}/api/data-query`, {
           method: 'POST',
@@ -234,18 +634,18 @@
         if (!res.ok) throw new Error(await res.text());
         const data = await res.json();
         renderAnswer(data.answer);
-        statusLine.textContent = 'Answered via /api/data-query';
+        statusLine.textContent = 'Updated via /api/data-query';
       } catch (err) {
-        renderAnswer('Unable to fetch an answer right now. Please try again.');
+        renderAnswer('Unable to fetch live insights. Please check connectivity.');
         statusLine.textContent = 'Error: ' + err.message;
       }
     }
 
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const question = queryInput.value.trim();
-      if (!question) return;
-      submitQuery(question);
+    queryBtns.forEach(btn => {
+      btn.addEventListener('click', () => {
+        const question = btn.getAttribute('data-q');
+        submitQuery(question);
+      });
     });
 
     loadHistoryBtn.addEventListener('click', async () => {
@@ -255,4 +655,5 @@
     });
   </script>
 </body>
+
 </html>

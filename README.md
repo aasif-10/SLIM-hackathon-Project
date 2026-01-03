@@ -44,99 +44,50 @@ SLIM AI unifies IoT sensing, machine-learning-driven prediction, and blockchain-
 
 ---
 
-## FastAPI + Supabase backend
-The `backend/` folder contains a simple FastAPI service that ingests sensor readings from an ESP32 and stores them in a Supabase Postgres table.
+## FastAPI + Firebase backend
+The `backend/` folder contains a FastAPI service that ingests sensor readings and stores them in Firebase Firestore.
 
 ### Project structure
 ```
 backend/
-  main.py                # FastAPI application with ingestion + query endpoints
-  supabase_client.py     # Cached Supabase client helper
+  main.py                # FastAPI application with ingestion + analytics endpoints
+  firebase_client.py     # Firestore client initialization
+  ai_utils.py            # Gemini integration (gemini-2.5-flash-preview-09-2025)
   requirements.txt       # Python dependencies
-  .env.example           # Example environment variables
-  migrations/
-    create_lake_readings.sql  # Table definition for Supabase
+  .env                   # Project configuration
 ```
 
 ### Environment variables
-Copy `.env.example` to `.env` and set the values:
-- `SUPABASE_URL` – your Supabase project URL
-- `SUPABASE_SERVICE_ROLE_KEY` – service role key (required for inserts)
-- `API_SECRET_KEY` – shared secret used to validate the `x-api-key` request header
+Set the following in your `.env` file:
+- `FIREBASE_PROJECT_ID` – your Firebase project ID
+- `FIREBASE_SERVICE_ACCOUNT_PATH` – path to `firebase-key.json`
+- `GEMINI_API_KEY` – Google Gemini API key
+- `API_SECRET_KEY` – shared secret for `x-api-key` header
 
 ### Running the backend
-1. **Set environment variables:** Copy `.env.example` to `.env` and fill in your Supabase URL, service role key, and API secret key.
-2. **Create the table:** Run the SQL in `backend/migrations/create_lake_readings.sql` against your Supabase database.
-3. **Install and start the API:**
+1. **Setup Firebase:** Follow `FIREBASE_SETUP_GUIDE.md` to get your `firebase-key.json`.
+2. **Install and start the API:**
 ```bash
 cd backend
-python -m venv .venv
-source .venv/bin/activate
+python -m venv venv
+# Windows
+.\venv\Scripts\activate
+# Linux/Mac
+source venv/bin/activate
 pip install -r requirements.txt
-uvicorn main:app --host 0.0.0.0 --port 8000  # or: python main.py
+uvicorn main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
-Once running, the interactive API docs (Swagger UI) are available at `http://localhost:8000/docs` and ReDoc at `http://localhost:8000/redoc`.
+Once running, the interactive API docs are at `http://localhost:8000/docs`.
 
 ### API endpoints
-- `POST /api/lake-data` – ingest a reading after validating the `x-api-key` header
-- `GET /api/lake-data/latest` – fetch the most recent reading
-- `GET /api/lake-data/history?limit=100` – fetch the latest N readings (default 100, max 500)
-- `POST /api/data-query` – answer natural-language questions about the lake CSV via the Groq LLM
-- `POST /api/digital-twin` – simulate warming, pollution slug, and rainfall-driven turbidity recovery
-- `POST /api/event-detection` – label-free event checks (polluted inflow, rain turbidity, aerator risk)
+- `POST /api/lake-data` – ingest a reading (validated by `x-api-key`)
+- `GET /api/lake-data/latest` – fetch the most recent reading from Firestore
+- `GET /api/lake-data/history` – fetch reading history from Firestore
+- `POST /api/data-query` – natural-language data analysis via Gemini 2.5 Flash
+- `GET /api/research-models` – advanced GNN and causal analysis
+- `GET /api/relationships` – sensor correlation and lag analysis
+- `GET /api/tsf` – time-series forecasting insights
 
-Example POST payload with header:
-```bash
-curl -X POST "http://localhost:8000/api/lake-data" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: MY_SECRET_KEY" \
-  -d '{
-        "ph": 7.2,
-        "turbidity": 560,
-        "temperature": 26.4,
-        "do_level": 300
-      }'
-```
-
-Sample Groq-backed query using the same API key:
-```bash
-curl -X POST "http://localhost:8000/api/data-query" \
-  -H "Content-Type: application/json" \
-  -H "x-api-key: MY_SECRET_KEY" \
-  -d '{
-        "question": "What are the recent average turbidity levels and are they trending up?"
-      }'
-```
-
-### Supabase table
-Apply the SQL in `backend/migrations/create_lake_readings.sql` to create the `lake_readings` table:
-```sql
-CREATE TABLE lake_readings (
-    id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    timestamp timestamptz DEFAULT now(),
-    ph float,
-    turbidity float,
-    temperature float,
-    do_level float
-);
-```
-
-### Notes
-- CORS is enabled for all origins to simplify IoT testing.
-- The Supabase client is cached to avoid re-initialization overhead.
-- Requests fail fast with descriptive errors when the API key or Supabase configuration is missing.
-
-### Visualizing a year's worth of readings
-An interactive Plotly dashboard can be generated directly from the CSV archive (sample provided in `backend/sample_lake_readings.csv`). From the `backend/` directory run:
-
-```bash
-pip install -r requirements.txt  # ensures pandas + plotly are present
-python visualize_lake_readings.py sample_lake_readings.csv --output lake_dashboard.html
-```
-
-Open the resulting `lake_dashboard.html` to explore:
-- Stacked time series with daily rolling averages and a range slider.
-- Diurnal temperature heatmap (hour vs. day of year).
-- Monthly box plots for seasonal shifts.
-- A quick correlation matrix across pH, turbidity, temperature, and DO.
+### Visualizing readings
+An interactive dashboard script is available in `backend/visualize.py`. Use it to generate HTML reports from historical data.

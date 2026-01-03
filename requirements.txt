@@ -3,7 +3,7 @@
 
 fastapi==0.115.4
 uvicorn[standard]
-supabase
+firebase-admin
 python-dotenv==1.0.1
 pydantic==2.9.2
 pandas==2.2.3
@@ -11,7 +11,7 @@ numpy
 scikit-learn
 plotly==5.24.1
 matplotlib
-groq==0.11.0
+google-genai
 httpx==0.27.2
 
 # CPU-only PyTorch + friends (for Python 3.13)

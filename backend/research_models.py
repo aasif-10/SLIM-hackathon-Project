@@ -8,9 +8,36 @@ import numpy as np
 import pandas as pd
 from pydantic import BaseModel
 from sklearn.linear_model import LinearRegression
+from ai_utils import generate_narrative
+
+from firebase_client import get_firestore
 
 CSV_FILE = Path(__file__).resolve().parent / "sample_lake_readings.csv"
 DEFAULT_BUOYS = ["buoy_1", "buoy_2", "buoy_3"]
+
+
+def _load_research_data() -> pd.DataFrame:
+    """Load data from Firestore if available, else fallback to CSV."""
+    try:
+        db = get_firestore()
+        docs = (
+            db.collection("lake_readings")
+            .order_by("timestamp", direction="DESCENDING")
+            .limit(500)
+            .stream()
+        )
+        data = [doc.to_dict() for doc in docs]
+        if data:
+            df = pd.DataFrame(data)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            return df.sort_values("timestamp").reset_index(drop=True)
+    except Exception as e:
+        print(f"[research_models] Firestore load failed: {e}. Falling back to CSV.")
+    
+    # Fallback to CSV
+    df = pd.read_csv(CSV_FILE)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    return df.sort_values("timestamp").reset_index(drop=True)
 
 
 @dataclass
@@ -170,10 +197,10 @@ def _summarize_graph_network(df: pd.DataFrame) -> GraphNeuralNetworkSummary:
                 mean_turbidity=mean_turbidity,
                 risk_score=risk_score,
                 top_neighbor_influences=top_influences,
-                interpretation=(
-                    "Elevated turbidity plus mildly acidic pH raises DO slump risk"
-                    if risk_score > 0.4
-                    else "Stable chemistry; neighbor influence is modest"
+                interpretation=generate_narrative(
+                    f"Explain the risk for {buoy} with mean pH {mean_ph:.2f}, "
+                    f"mean turbidity {mean_turbidity:.2f}, and risk score {risk_score:.2f}. "
+                    f"Top influences: {top_influences}. Be concise."
                 ),
             )
         )
@@ -198,29 +225,21 @@ def _summarize_graph_network(df: pd.DataFrame) -> GraphNeuralNetworkSummary:
             expected_do=float(propagated_do[buoy]),
             lower_bound=float(propagated_do[buoy] - 8),
             upper_bound=float(propagated_do[buoy] + 8),
-            commentary=(
-                "Short-hop GNN message passing trims DO based on neighbor turbidity"
+            commentary=generate_narrative(
+                f"Explain the DO propagation forecast for {buoy} at 6h horizon. "
+                f"Expected DO: {value:.2f}. Be very concise."
             ),
         )
-        for buoy in buoys
-    ] + [
-        GraphPropagationForecast(
-            horizon_hours=24,
-            expected_do=float(value * 0.98),
-            lower_bound=float(value * 0.98 - 10),
-            upper_bound=float(value * 0.98 + 10),
-            commentary="Day-ahead decay accounts for continued plume advection",
-        )
-        for value in propagated_do.values()
+        for buoy, value in propagated_do.items()
     ]
 
     return GraphNeuralNetworkSummary(
         nodes=nodes,
         edges=edge_summaries,
         propagation=propagation,
-        takeaway=(
-            "Graph attention highlights buoy_2 as a likely upstream driver; "
-            "aeration should start there to buffer lake-wide DO"
+        takeaway=generate_narrative(
+            "Summarize the key takeaway for a lake manager based on this GNN analysis. "
+            "Highlight the most critical buoy or trend. 1 sentence max."
         ),
     )
 
@@ -263,7 +282,10 @@ def _estimate_causal_turbidity_ph(df: pd.DataFrame) -> CausalEffectEstimate:
         methodology=(
             "Three-day potential-outcome comparison: turbidity top quartile vs remaining records"
         ),
-        interpretation=interpretation,
+        interpretation=generate_narrative(
+            f"Interpret a causal effect of {ate:.4f} showing how turbidity shocks affect pH "
+            f"over {horizon_steps * step_hours} hours. Be concise."
+        ),
     )
 
 
@@ -330,7 +352,13 @@ def _evaluate_models(df: pd.DataFrame) -> EvaluationInterpretabilitySummary:
 
 
 def compute_research_models() -> ResearchModelResponse:
-    df = _load_base_df()
+    df = _load_research_data()
+    if len(df) < 5:
+        # If very little data, use CSV for better research visibility
+        df = pd.read_csv(CSV_FILE)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp").reset_index(drop=True)
+
     graph_network = _summarize_graph_network(df)
     causal_effect = _estimate_causal_turbidity_ph(df)
     evaluation = _evaluate_models(df)

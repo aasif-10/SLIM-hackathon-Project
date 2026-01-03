@@ -9,7 +9,32 @@ import pandas as pd
 from pydantic import BaseModel
 from sklearn.feature_selection import mutual_info_regression
 
+from firebase_client import get_firestore
+
 CSV_FILE = Path(__file__).resolve().parent / "sample_lake_readings.csv"
+
+
+def _load_data() -> pd.DataFrame:
+    """Load data from Firestore if available, else fallback to CSV."""
+    try:
+        db = get_firestore()
+        docs = (
+            db.collection("lake_readings")
+            .order_by("timestamp", direction="DESCENDING")
+            .limit(500)
+            .stream()
+        )
+        data = [doc.to_dict() for doc in docs]
+        if data:
+            df = pd.DataFrame(data)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            return df.sort_values("timestamp").reset_index(drop=True)
+    except Exception as e:
+        print(f"[relationships] Firestore load failed: {e}. Falling back to CSV.")
+    
+    df = pd.read_csv(CSV_FILE)
+    df["timestamp"] = pd.to_datetime(df["timestamp"])
+    return df.sort_values("timestamp").reset_index(drop=True)
 
 
 def _detect_season(month: int) -> str:
@@ -70,12 +95,10 @@ class RelationshipAnalysisResponse(BaseModel):
     mixing_cycles: MixingCycleSignal
 
 
-df = pd.read_csv(CSV_FILE)
-df["timestamp"] = pd.to_datetime(df["timestamp"])
-df = df.sort_values("timestamp").reset_index(drop=True)
+# Removed global df loading
 
 
-def _pearson(x: str, y: str) -> float:
+def _pearson(df: pd.DataFrame, x: str, y: str) -> float:
     return float(df[[x, y]].corr().iloc[0, 1])
 
 
@@ -94,7 +117,7 @@ def _correlation_label(value: float) -> str:
 
 
 def _best_lagged_corr(
-    feature_x: str, feature_y: str, max_lag_steps: int = 8
+    df: pd.DataFrame, feature_x: str, feature_y: str, max_lag_steps: int = 8
 ) -> _LagResult:
     base_step_hours = (
         df["timestamp"].diff().dt.total_seconds().dropna().mode().iloc[0] / 3600
@@ -117,7 +140,7 @@ def _best_lagged_corr(
     return _LagResult(lag_steps=int(best.lag_steps * base_step_hours), correlation=best.correlation)
 
 
-def _mutual_information(target: str, features: List[str]) -> List[MutualInformationSummary]:
+def _mutual_information(df: pd.DataFrame, target: str, features: List[str]) -> List[MutualInformationSummary]:
     X = df[features]
     y = df[target]
     scores = mutual_info_regression(X, y, random_state=42)
@@ -137,7 +160,7 @@ def _mutual_information(target: str, features: List[str]) -> List[MutualInformat
     return results
 
 
-def _seasonal_ph_flattening() -> List[SeasonalPHSummary]:
+def _seasonal_ph_flattening(df: pd.DataFrame) -> List[SeasonalPHSummary]:
     seasonal_df = df.copy()
     seasonal_df["season"] = seasonal_df["timestamp"].dt.month.apply(_detect_season)
     summaries: List[SeasonalPHSummary] = []
@@ -159,7 +182,7 @@ def _seasonal_ph_flattening() -> List[SeasonalPHSummary]:
     return sorted(summaries, key=lambda s: s.season)
 
 
-def _mixing_cycle_signal() -> MixingCycleSignal:
+def _mixing_cycle_signal(df: pd.DataFrame) -> MixingCycleSignal:
     temp_diff = df["temperature"].diff().dropna()
     threshold = temp_diff.std()
     significant = temp_diff[abs(temp_diff) > threshold]
@@ -177,29 +200,36 @@ def _mixing_cycle_signal() -> MixingCycleSignal:
 
 
 def compute_relationship_insights() -> RelationshipAnalysisResponse:
+    df = _load_data()
+    # If very little data from Firestore, ensure we have enough for meaningful analysis
+    if len(df) < 10:
+        df = pd.read_csv(CSV_FILE)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp").reset_index(drop=True)
+
     correlations = [
         CorrelationSummary(
             feature_x="temperature",
             feature_y="do_level",
-            pearson=_pearson("temperature", "do_level"),
+            pearson=_pearson(df, "temperature", "do_level"),
             interpretation="Higher temps reduce dissolved oxygen carrying capacity",
         ),
         CorrelationSummary(
             feature_x="turbidity",
             feature_y="ph",
-            pearson=_pearson("turbidity", "ph"),
+            pearson=_pearson(df, "turbidity", "ph"),
             interpretation="Particles and algal blooms can shift pH balance",
         ),
         CorrelationSummary(
             feature_x="turbidity",
             feature_y="temperature",
-            pearson=_pearson("turbidity", "temperature"),
+            pearson=_pearson(df, "turbidity", "temperature"),
             interpretation="Suspended solids may track inflow and mixing events",
         ),
     ]
 
-    temp_do_lag = _best_lagged_corr("temperature", "do_level")
-    turbidity_ph_lag = _best_lagged_corr("turbidity", "ph")
+    temp_do_lag = _best_lagged_corr(df, "temperature", "do_level")
+    turbidity_ph_lag = _best_lagged_corr(df, "turbidity", "ph")
 
     lag_relationships = [
         LagCorrelationSummary(
@@ -220,9 +250,9 @@ def compute_relationship_insights() -> RelationshipAnalysisResponse:
         ),
     ]
 
-    mi_scores = _mutual_information("do_level", ["temperature", "ph", "turbidity"])
-    seasonal_ph = _seasonal_ph_flattening()
-    mixing_signal = _mixing_cycle_signal()
+    mi_scores = _mutual_information(df, "do_level", ["temperature", "ph", "turbidity"])
+    seasonal_ph = _seasonal_ph_flattening(df)
+    mixing_signal = _mixing_cycle_signal(df)
 
     quick_facts = [
         f"Temperature vs DO: {_correlation_label(correlations[0].pearson)}",

@@ -42,22 +42,45 @@ class ClusterPatternsResponse(BaseModel):
 
 CSV_FILE = Path(__file__).resolve().parent / "sample_lake_readings.csv"
 
-df = pd.read_csv(CSV_FILE)
-df["timestamp"] = pd.to_datetime(df["timestamp"])
-df = df.sort_values("timestamp").reset_index(drop=True)
+from functools import lru_cache
 
-cluster_df = df[["ph", "turbidity", "temperature"]].ffill()
+@lru_cache(maxsize=1)
+def _get_cluster_models_and_data():
+    """Lazy load data and compute clustering models."""
+    from firebase_client import get_firestore
+    try:
+        db = get_firestore()
+        docs = db.collection("lake_readings").order_by("timestamp", direction="DESCENDING").limit(500).stream()
+        data = [doc.to_dict() for doc in docs]
+        if len(data) > 30:
+            df = pd.DataFrame(data)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp").reset_index(drop=True)
+        else:
+            df = pd.read_csv(CSV_FILE)
+            df["timestamp"] = pd.to_datetime(df["timestamp"])
+            df = df.sort_values("timestamp").reset_index(drop=True)
+    except Exception:
+        df = pd.read_csv(CSV_FILE)
+        df["timestamp"] = pd.to_datetime(df["timestamp"])
+        df = df.sort_values("timestamp").reset_index(drop=True)
 
-kmeans = KMeans(n_clusters=3, random_state=42)
-kmeans_labels = kmeans.fit_predict(cluster_df)
+    cluster_df = df[["ph", "turbidity", "temperature"]].ffill()
 
-dbscan = DBSCAN(eps=0.5, min_samples=10)
-dbscan_labels = dbscan.fit_predict(cluster_df)
+    kmeans = KMeans(n_clusters=3, random_state=42)
+    kmeans_labels = kmeans.fit_predict(cluster_df)
 
-pca = PCA(n_components=2)
-pca_result = pca.fit_transform(cluster_df)
-df["pc1"] = pca_result[:, 0]
-df["pc2"] = pca_result[:, 1]
+    dbscan = DBSCAN(eps=0.5, min_samples=10)
+    dbscan_labels = dbscan.fit_predict(cluster_df)
+
+    pca = PCA(n_components=2)
+    pca_result = pca.fit_transform(cluster_df)
+    df["pc1"] = pca_result[:, 0]
+    df["pc2"] = pca_result[:, 1]
+    
+    df["season"] = df["timestamp"].dt.month.apply(_detect_season)
+    
+    return df, kmeans_labels, dbscan_labels
 
 
 def _detect_season(month: int) -> str:
@@ -68,13 +91,11 @@ def _detect_season(month: int) -> str:
     return "winter"
 
 
-df["season"] = df["timestamp"].dt.month.apply(_detect_season)
-
-
 def compute_cluster_patterns(
-    supabase: Optional[object] = None,
+    db: Optional[object] = None,
 ) -> ClusterPatternsResponse:
     """Compute clustering and pattern summaries and optionally store them."""
+    df, kmeans_labels, dbscan_labels = _get_cluster_models_and_data()
 
     unique, counts = np.unique(kmeans_labels, return_counts=True)
     kmeans_summary: List[KMeansClusterInfo] = []
@@ -126,10 +147,10 @@ def compute_cluster_patterns(
         seasonal_clusters=seasonal_summary,
     )
 
-    if supabase is not None:
+    if db is not None:
         try:
             cluster_map = {k.cluster: k for k in kmeans_summary}
-            supabase.table("cluster_patterns").insert(
+            db.collection("cluster_patterns").add(
                 {
                     "timestamp": datetime.utcnow().isoformat(),
                     "kmeans_cluster_0_count": cluster_map.get(
@@ -158,9 +179,9 @@ def compute_cluster_patterns(
                     "winter_count": seasonal_summary.winter,
                     "total_data_points": len(df),
                 }
-            ).execute()
+            )
         except Exception as exc:
             # non-fatal; just log to console
-            print(f"[cluster_patterns] Error storing to Supabase: {exc}")
+            print(f"[cluster_patterns] Error storing to Firebase: {exc}")
 
     return result
