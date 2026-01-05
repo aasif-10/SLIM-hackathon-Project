@@ -3,7 +3,12 @@ from pathlib import Path
 import traceback
 from typing import Dict, List, Optional, Tuple
 
+import sys
 import pandas as pd
+
+# Add current directory to path so we can import peer modules (firebase_client, etc.)
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
 import torch
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -95,8 +100,12 @@ class LakeReadingResponse(LakeReading):
 app = FastAPI(
     title="SLIM AI Lake Data API",
     docs_url="/data",
+
     redoc_url=None,
 )
+
+from auth.router import router as auth_router
+app.include_router(auth_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -107,7 +116,7 @@ app.add_middleware(
 )
 
 
-@app.get("/")
+@app.get("/api/status")
 def read_root():
     return {"status": "online", "message": "SLIM AI Lake Data API is running"}
 
@@ -633,3 +642,18 @@ def get_next_command(_: None = Depends(verify_api_key)):
         return CommandResponse(command=READ_SENSOR_COMMAND)
 
     return CommandResponse(command="idle")
+
+
+from fastapi.staticfiles import StaticFiles
+
+# Resolve absolute path to frontend
+FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
+print(f"DEBUG: Frontend directory resolved to: {FRONTEND_DIR}")
+print(f"DEBUG: Directory exists? {FRONTEND_DIR.exists()}")
+
+# Mount frontend files to be served comfortably
+# 'html=True' allows accessing 'index.html' just by hitting the root URL
+if FRONTEND_DIR.exists():
+    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static")
+else:
+    print(f"WARNING: Frontend directory not found at {FRONTEND_DIR}")
