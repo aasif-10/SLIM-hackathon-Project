@@ -20,6 +20,7 @@ router = APIRouter(
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID")
 GOOGLE_CLIENT_SECRET = os.getenv("GOOGLE_CLIENT_SECRET")
 BASE_URL = os.getenv("BASE_URL", "http://localhost:8000")
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 REDIRECT_URI = f"{BASE_URL}/auth/callback"
 
 @router.get("/login")
@@ -120,11 +121,9 @@ def auth_callback(code: str, error: Optional[str] = None):
         expires_delta=access_token_expires
     )
     
-    # Redirect to frontend with token
-    # In a real app, you might use a cookie or a safer way to pass the token
-    # For this task, passing as query param to frontend home/dashboard
-    frontend_url = f"{BASE_URL}/?token={access_token}" 
-    return RedirectResponse(frontend_url)
+    # Redirect to React frontend with token
+    frontend_redirect = f"{FRONTEND_URL}/dashboard?token={access_token}" 
+    return RedirectResponse(frontend_redirect)
 
 @router.get("/me", response_model=User)
 def read_users_me(current_user: User = Depends(get_current_user)):

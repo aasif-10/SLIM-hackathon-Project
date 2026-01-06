@@ -4,255 +4,15 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SLIM AI | Alerts</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Alerts | SLIM AI</title>
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
   <style>
-    :root {
-      --bg: #0a1628;
-      --surface: #111d32;
-      --border: #1e3a5f;
-      --text: #e2e8f0;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      line-height: 1.6;
-    }
-
-    header {
-      background: transparent;
-      border-bottom: none;
-      position: absolute;
-      top: 0;
-      width: 100%;
-      z-index: 100;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 0;
-    }
-
-    .logo {
-      display: none;
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 48px;
-    }
-
-    nav a {
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.2s;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    nav a:hover,
-    nav a.active {
-      color: white;
-    }
-
-    .main-content {
-      padding: 140px 0 64px;
-    }
-
-    .page-header {
-      margin-bottom: 24px;
-    }
-
-    .page-header h1 {
-      font-size: 2rem;
-      margin-bottom: 8px;
-    }
-
-    .page-header p {
-      color: var(--text-muted);
-    }
-
-    .alerts-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-      gap: 16px;
-      margin-top: 24px;
-    }
-
-    .alert-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      transition: border-color 0.2s;
-    }
-
-    .alert-card.high {
-      border-left: 4px solid var(--danger);
-    }
-
-    .alert-card.medium {
-      border-left: 4px solid var(--warning);
-    }
-
-    .alert-card.low {
-      border-left: 4px solid var(--primary);
-    }
-
-    .alert-card.none {
-      border-left: 4px solid var(--success);
-    }
-
-    .alert-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 12px;
-    }
-
-    .alert-title {
-      font-size: 1.1rem;
-      font-weight: 600;
-    }
-
-    .alert-time {
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .alert-sensor {
-      font-size: 0.85rem;
-      color: var(--text-muted);
-      margin-bottom: 10px;
-    }
-
-    .alert-description {
-      font-size: 0.95rem;
-      color: var(--text);
-      margin-bottom: 14px;
-      line-height: 1.5;
-    }
-
-    .alert-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .pill {
-      display: inline-block;
-      padding: 5px 12px;
-      border-radius: 999px;
-      font-weight: 600;
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .pill.none {
-      background: rgba(16, 185, 129, 0.15);
-      color: var(--success);
-      border: 1px solid rgba(16, 185, 129, 0.5);
-    }
-
-    .pill.low {
-      background: rgba(59, 130, 246, 0.15);
-      color: var(--primary);
-      border: 1px solid rgba(59, 130, 246, 0.5);
-    }
-
-    .pill.medium {
-      background: rgba(245, 158, 11, 0.2);
-      color: var(--warning);
-      border: 1px solid rgba(245, 158, 11, 0.5);
-    }
-
-    .pill.high {
-      background: rgba(239, 68, 68, 0.2);
-      color: var(--danger);
-      border: 1px solid rgba(239, 68, 68, 0.5);
-    }
-
-    .alert-metrics {
-      display: flex;
-      gap: 16px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-    }
-
-    .alert-metrics span {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-
-    .summary-bar {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 16px;
-    }
-
-    .summary-stats {
-      display: flex;
-      gap: 32px;
-    }
-
-    .stat-item {
-      text-align: center;
-    }
-
+    /* Page specific minimal overrides */
     .stat-value {
       font-size: 1.5rem;
       font-weight: 700;
-    }
-
-    .stat-value.high {
-      color: var(--danger);
-    }
-
-    .stat-value.medium {
-      color: var(--warning);
-    }
-
-    .stat-value.low {
-      color: var(--primary);
-    }
-
-    .stat-value.clear {
-      color: var(--success);
+      color: var(--text-main);
     }
 
     .stat-label {
@@ -262,240 +22,177 @@
       letter-spacing: 0.5px;
     }
 
-    .last-update {
-      font-size: 0.85rem;
+    .alert-card {
+      border-left: 4px solid transparent;
+      /* Status indicator strip */
+    }
+
+    .alert-card.high {
+      border-left-color: var(--danger);
+    }
+
+    .alert-card.medium {
+      border-left-color: var(--warning);
+    }
+
+    .alert-card.low {
+      border-left-color: var(--primary);
+    }
+
+    .alert-card.none {
+      border-left-color: var(--success);
+    }
+
+    .alert-kv {
+      display: flex;
+      gap: 4px;
+      font-size: 0.8rem;
       color: var(--text-muted);
     }
+
+    .alert-kv span:first-child {
+      font-weight: 500;
+      color: var(--text-main);
+    }
   </style>
-  <script src="js/auth.js"></script>
 </head>
 
 <body>
-  <header>
-    <div class="container">
-      <div class="nav">
-        <div class="logo">SLIM AI<span>Lake Intelligence</span></div>
-        <nav>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="prediction.html">Prediction</a></li>
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="anomaly.html">Anomaly</a></li>
-            <li><a href="research.html">Research</a></li>
-            <li><a href="simulation.html">Simulation</a></li>
-            <li><a href="query.html">Query</a></li>
-            <li><a class="active" href="alerts.html">Alerts</a></li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </header>
+  <div id="app-nav" style="display: contents;"></div>
 
   <main class="main-content">
-    <div class="container">
-      <div class="page-header">
-        <h1>Event Alerts</h1>
-        <p>Real-time monitoring alerts from all lake sensors detecting polluted inflow, aerator faults, and
-          environmental anomalies.</p>
+    <!-- Top Bar -->
+    <header class="top-bar">
+      <div class="page-title">Event Scanner</div>
+      <div class="flex items-center gap-2">
+        <div id="last-update" class="text-muted" style="font-size: 0.85rem;">Last updated: Just now</div>
       </div>
+    </header>
 
-      <div class="summary-bar">
-        <div class="summary-stats">
-          <div class="stat-item">
-            <div class="stat-value high" id="high-count">2</div>
-            <div class="stat-label">Critical</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value medium" id="medium-count">3</div>
-            <div class="stat-label">Warning</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value low" id="low-count">2</div>
-            <div class="stat-label">Info</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-value clear" id="clear-count">4</div>
-            <div class="stat-label">Clear</div>
+    <div class="scroll-area">
+      <div class="container">
+
+        <!-- Summary Card -->
+        <div class="card mb-4">
+          <div class="flex justify-between items-center" style="padding:0 20px;">
+            <div class="text-center">
+              <div class="stat-value" id="high-count" style="color: var(--danger);">--</div>
+              <div class="stat-label">Critical</div>
+            </div>
+            <div class="text-center">
+              <div class="stat-value" id="medium-count" style="color: var(--warning);">--</div>
+              <div class="stat-label">Warning</div>
+            </div>
+            <div class="text-center">
+              <div class="stat-value" id="low-count" style="color: var(--primary);">--</div>
+              <div class="stat-label">Info</div>
+            </div>
+            <div class="text-center">
+              <div class="stat-value" id="clear-count" style="color: var(--success);">--</div>
+              <div class="stat-label">Clear</div>
+            </div>
           </div>
         </div>
-        <div class="last-update" id="last-update">Last updated: Just now</div>
-      </div>
 
-      <div class="alerts-grid" id="alerts-container"></div>
+        <!-- Alerts Grid -->
+        <div class="grid-2" id="alerts-container">
+          <!-- JS Injects here -->
+        </div>
+      </div>
     </div>
   </main>
 
+  <script src="js/components.js"></script>
+  <script>initPage('alerts');</script>
+
   <script>
-    // Mock alert data simulating real sensor events
+    // Mock Data
     const mockAlerts = [
       {
-        id: 1,
-        title: 'Low Dissolved Oxygen',
-        sensor: 'S-04 South Inlet',
-        severity: 'high',
-        description: 'DO level dropped to 3.2 mg/L, below critical threshold of 4.0 mg/L. Immediate attention required - potential fish mortality risk.',
-        time: '2 minutes ago',
-        metrics: { do: '3.2 mg/L', temp: '29.1C', trend: 'Falling' }
+        id: 1, title: 'Low Dissolved Oxygen', sensor: 'S-04 South Inlet', severity: 'high',
+        description: 'DO level dropped to 3.2 mg/L, below critical threshold.',
+        time: '2m ago', metrics: { do: '3.2 mg/L', temp: '29.1C' }
       },
       {
-        id: 2,
-        title: 'Turbidity Spike Detected',
-        sensor: 'S-04 South Inlet',
-        severity: 'high',
-        description: 'Turbidity reading of 485 NTU detected, indicating potential polluted inflow or sediment disturbance from upstream sources.',
-        time: '8 minutes ago',
-        metrics: { turbidity: '485 NTU', baseline: '120 NTU', change: '+304%' }
+        id: 2, title: 'Turbidity Spike', sensor: 'S-04 South Inlet', severity: 'high',
+        description: 'Reading of 485 NTU detected. Potential polluted inflow.',
+        time: '8m ago', metrics: { turbidity: '485 NTU', change: '+304%' }
       },
       {
-        id: 3,
-        title: 'pH Level Drift',
-        sensor: 'S-03 Central Deep',
-        severity: 'medium',
-        description: 'pH decreased from 7.4 to 6.8 over the past 3 hours. Monitoring for acidification patterns.',
-        time: '15 minutes ago',
-        metrics: { ph: '6.8', change: '-0.6', rate: '-0.2/hr' }
+        id: 3, title: 'pH Level Drift', sensor: 'S-03 Central Deep', severity: 'medium',
+        description: 'pH decreased from 7.4 to 6.8 over past 3 hours.',
+        time: '15m ago', metrics: { ph: '6.8', rate: '-0.2/hr' }
       },
       {
-        id: 4,
-        title: 'Temperature Anomaly',
-        sensor: 'S-02 East Bay',
-        severity: 'medium',
-        description: 'Water temperature 3.2C above daily average. Possible thermal stratification developing.',
-        time: '23 minutes ago',
-        metrics: { temp: '24.5C', avg: '21.3C', delta: '+3.2C' }
+        id: 4, title: 'Temp Anomaly', sensor: 'S-02 East Bay', severity: 'medium',
+        description: 'Water temp +3.2C above daily average.',
+        time: '23m ago', metrics: { temp: '24.5C', avg: '21.3C' }
       },
       {
-        id: 5,
-        title: 'Diurnal Pattern Deviation',
-        sensor: 'S-01 North Shore',
-        severity: 'medium',
-        description: 'Nighttime DO levels not recovering as expected. Aerator efficiency may be compromised.',
-        time: '45 minutes ago',
-        metrics: { do: '5.8 mg/L', expected: '7.2 mg/L', efficiency: '81%' }
+        id: 6, title: 'Rainfall Impact', sensor: 'Network-wide', severity: 'low',
+        description: 'Heavy rainfall (32mm) detected. Monitoring runoff.',
+        time: '1h ago', metrics: { rainfall: '32mm', rain_duration: '6 hrs' }
       },
       {
-        id: 6,
-        title: 'Rainfall Impact Alert',
-        sensor: 'Network-wide',
-        severity: 'low',
-        description: 'Heavy rainfall (32mm) detected in past 6 hours. Monitoring for runoff contamination and turbidity increase.',
-        time: '1 hour ago',
-        metrics: { rainfall: '32mm', duration: '6 hrs', runoff: 'Moderate' }
+        id: 7, title: 'Calibration Due', sensor: 'S-05 West Shore', severity: 'low',
+        description: 'pH sensor calibration due in 48 hours.',
+        time: '2h ago', metrics: { lastCal: '28d ago', status: 'Due Soon' }
       },
       {
-        id: 7,
-        title: 'Sensor Calibration Due',
-        sensor: 'S-05 West Shore',
-        severity: 'low',
-        description: 'pH sensor last calibrated 28 days ago. Scheduled maintenance recommended within 48 hours.',
-        time: '2 hours ago',
-        metrics: { lastCal: '28 days', interval: '30 days', status: 'Due Soon' }
-      },
-      {
-        id: 8,
-        title: 'Normal Operations',
-        sensor: 'S-01 North Shore',
-        severity: 'none',
-        description: 'All parameters within normal operating ranges. Water quality optimal for aquatic life.',
-        time: '3 hours ago',
-        metrics: { ph: '7.4', do: '8.9 mg/L', turbidity: '2.1 NTU' }
-      },
-      {
-        id: 9,
-        title: 'Normal Operations',
-        sensor: 'S-02 East Bay',
-        severity: 'none',
-        description: 'Sensor readings stable. DO levels healthy at 9.2 mg/L with good clarity.',
-        time: '3 hours ago',
-        metrics: { ph: '7.5', do: '9.2 mg/L', turbidity: '1.8 NTU' }
-      },
-      {
-        id: 10,
-        title: 'Normal Operations',
-        sensor: 'S-05 West Shore',
-        severity: 'none',
-        description: 'All readings nominal. Water conditions suitable for recreational activities.',
-        time: '3 hours ago',
-        metrics: { ph: '7.4', do: '9.0 mg/L', turbidity: '2.2 NTU' }
-      },
-      {
-        id: 11,
-        title: 'Normal Operations',
-        sensor: 'S-06 Outlet Channel',
-        severity: 'none',
-        description: 'Outflow water quality within acceptable limits. No contamination detected.',
-        time: '3 hours ago',
-        metrics: { ph: '7.5', do: '8.8 mg/L', turbidity: '2.6 NTU' }
+        id: 8, title: 'Normal Ops', sensor: 'S-01 North Shore', severity: 'none',
+        description: 'All parameters normal.', time: '3h ago', metrics: { status: 'Optimal' }
       }
     ];
 
-    function renderAlert(alert) {
-      const metricsHtml = Object.entries(alert.metrics)
-        .map(([key, value]) => `<span>${key}: ${value}</span>`)
-        .join('');
-
-      return `
-        <div class="alert-card ${alert.severity}">
-          <div class="alert-header">
-            <div class="alert-title">${alert.title}</div>
-            <div class="alert-time">${alert.time}</div>
-          </div>
-          <div class="alert-sensor">${alert.sensor}</div>
-          <div class="alert-description">${alert.description}</div>
-          <div class="alert-footer">
-            <span class="pill ${alert.severity}">${getSeverityLabel(alert.severity)}</span>
-            <div class="alert-metrics">${metricsHtml}</div>
-          </div>
-        </div>
-      `;
-    }
-
-    function getSeverityLabel(severity) {
-      const labels = {
-        high: 'Critical',
-        medium: 'Warning',
-        low: 'Info',
-        none: 'Clear'
-      };
-      return labels[severity] || severity;
-    }
-
-    function updateSummaryCounts() {
-      const counts = { high: 0, medium: 0, low: 0, none: 0 };
-      mockAlerts.forEach(alert => {
-        counts[alert.severity]++;
-      });
-
-      document.getElementById('high-count').textContent = counts.high;
-      document.getElementById('medium-count').textContent = counts.medium;
-      document.getElementById('low-count').textContent = counts.low;
-      document.getElementById('clear-count').textContent = counts.none;
+    function getSeverityBadge(severity) {
+      const map = { high: 'badge-danger', medium: 'badge-warning', low: 'badge-neutral', none: 'badge-success' };
+      return `<span class="badge ${map[severity]}">${severity.toUpperCase()}</span>`;
     }
 
     function renderAlerts() {
       const container = document.getElementById('alerts-container');
-      // Sort by severity (high first) then by time
-      const sortedAlerts = [...mockAlerts].sort((a, b) => {
+      const sorted = [...mockAlerts].sort((a, b) => {
         const order = { high: 0, medium: 1, low: 2, none: 3 };
         return order[a.severity] - order[b.severity];
       });
 
-      container.innerHTML = sortedAlerts.map(renderAlert).join('');
-      updateSummaryCounts();
+      container.innerHTML = sorted.map(alert => {
+        const metrics = Object.entries(alert.metrics).map(([k, v]) =>
+          `<div class="alert-kv"><span>${k}:</span> <span>${v}</span></div>`
+        ).join('');
 
-      const now = new Date();
-      document.getElementById('last-update').textContent =
-        `Last updated: ${now.toLocaleTimeString()}`;
+        return `
+              <div class="card alert-card ${alert.severity}" style="margin-bottom:0;">
+                  <div class="flex justify-between items-center mb-2">
+                       <div style="font-weight:600; color:var(--text-main);">${alert.title}</div>
+                       ${getSeverityBadge(alert.severity)}
+                  </div>
+                  <div class="text-muted" style="font-size:0.8rem; margin-bottom:8px;">
+                      ${alert.sensor} • ${alert.time}
+                  </div>
+                  <p style="font-size:0.9rem; margin-bottom:12px;">${alert.description}</p>
+                  <div style="background:var(--slate-50); padding:8px; border-radius:var(--radius-sm);">
+                      <div class="flex flex-wrap gap-4">
+                          ${metrics}
+                      </div>
+                  </div>
+              </div>
+            `;
+      }).join('');
+
+      updateCounts();
     }
 
-    // Initial render
-    renderAlerts();
+    function updateCounts() {
+      const counts = { high: 0, medium: 0, low: 0, none: 0 };
+      mockAlerts.forEach(a => counts[a.severity]++);
+      document.getElementById('high-count').innerText = counts.high;
+      document.getElementById('medium-count').innerText = counts.medium;
+      document.getElementById('low-count').innerText = counts.low;
+      document.getElementById('clear-count').innerText = counts.none;
+    }
 
-    // Simulate periodic updates
-    setInterval(() => {
-      document.getElementById('last-update').textContent =
-        `Last updated: ${new Date().toLocaleTimeString()}`;
-    }, 60000);
+    renderAlerts();
   </script>
 </body>
 

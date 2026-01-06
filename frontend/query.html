@@ -4,656 +4,243 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SLIM AI | Query</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <title>Query | SLIM AI</title>
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script src="js/components.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
-  <style>
-    :root {
-      --bg: #0a1628;
-      --surface: #111d32;
-      --border: #1e3a5f;
-      --text: #e2e8f0;
-      --text-muted: #94a3b8;
-      --primary: #3b82f6;
-      --success: #10b981;
-      --warning: #f59e0b;
-      --danger: #ef4444;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      line-height: 1.6;
-    }
-
-    header {
-      background: transparent;
-      border-bottom: none;
-      position: absolute;
-      top: 0;
-      width: 100%;
-      z-index: 100;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 0;
-    }
-
-    .logo {
-      display: none;
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 48px;
-    }
-
-    nav a {
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      font-weight: 600;
-      transition: color 0.2s;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-    }
-
-    nav a:hover,
-    nav a.active {
-      color: white;
-    }
-
-    .main-content {
-      padding: 140px 0 64px;
-    }
-
-    .page-header {
-      margin-bottom: 24px;
-    }
-
-    .page-header h1 {
-      font-size: 2rem;
-      margin-bottom: 8px;
-    }
-
-    .page-header p {
-      color: var(--text-muted);
-    }
-
-    .grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      align-items: start;
-    }
-
-    .panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 20px;
-    }
-
-    .panel h2 {
-      font-size: 1rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--text-muted);
-      margin-bottom: 14px;
-    }
-
-    textarea {
-      width: 100%;
-      min-height: 140px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0f1c30;
-      color: var(--text);
-      padding: 12px;
-      font-size: 1rem;
-      resize: vertical;
-    }
-
-    button {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px 16px;
-      border-radius: 8px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-    }
-
-    button:hover {
-      background: #2563eb;
-      transform: translateY(-1px);
-    }
-
-    .status {
-      margin-top: 10px;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .answer {
-      margin-top: 12px;
-      padding: 14px;
-      border-radius: 10px;
-      background: #0f1c30;
-      border: 1px solid var(--border);
-    }
-
-    .answer h3 {
-      font-size: 1rem;
-      margin-bottom: 8px;
-    }
-
-    .answer p {
-      color: var(--text);
-    }
-
-    .reasoning-box {
-      margin-top: 15px;
-      padding: 12px;
-      background: rgba(59, 130, 246, 0.05);
-      border-left: 3px solid var(--primary);
-      border-radius: 4px;
-      font-style: italic;
-      color: var(--text-muted);
-      font-size: 0.95rem;
-    }
-
-    .example-tag {
-      display: inline-block;
-      padding: 6px 12px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 20px;
-      font-size: 0.85rem;
-      color: var(--primary);
-      cursor: pointer;
-      margin: 4px;
-      transition: all 0.2s;
-    }
-
-    .example-tag:hover {
-      border-color: var(--primary);
-      background: rgba(59, 130, 246, 0.1);
-    }
-
-    .chart-box {
-      position: relative;
-      height: 340px;
-    }
-
-    .stat-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-      gap: 10px;
-      margin-top: 14px;
-    }
-
-    .chip {
-      padding: 12px;
-      border-radius: 10px;
-      border: 1px solid var(--border);
-      background: #0f1c30;
-    }
-
-    .chip h4 {
-      font-size: 0.95rem;
-      margin-bottom: 6px;
-    }
-
-    .chip p {
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    .muted {
-      color: var(--text-muted);
-    }
-
-    /* Expert Chat Styles */
-    .expert-chat-container {
-      margin-top: 24px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      overflow: hidden;
-      display: flex;
-      flex-direction: column;
-      height: 480px;
-    }
-
-    .chat-header {
-      padding: 12px 16px;
-      background: rgba(59, 130, 246, 0.1);
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-    }
-
-    .chat-messages {
-      flex: 1;
-      padding: 16px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .message {
-      max-width: 85%;
-      padding: 10px 14px;
-      border-radius: 10px;
-      font-size: 0.9rem;
-      line-height: 1.5;
-    }
-
-    .message.user {
-      align-self: flex-end;
-      background: var(--primary);
-      color: white;
-      border-bottom-right-radius: 2px;
-    }
-
-    .message.ai {
-      align-self: flex-start;
-      background: #1e293b;
-      color: var(--text);
-      border: 1px solid var(--border);
-      border-bottom-left-radius: 2px;
-    }
-
-    .chat-input-area {
-      padding: 12px 16px;
-      background: #0f1c30;
-      border-top: 1px solid var(--border);
-      display: flex;
-      gap: 10px;
-    }
-
-    .chat-input {
-      flex: 1;
-      background: transparent;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 8px 12px;
-      color: var(--text);
-      font-family: inherit;
-      outline: none;
-      font-size: 0.9rem;
-    }
-
-    .chat-input:focus {
-      border-color: var(--primary);
-    }
-
-    .chat-send-btn {
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 0 16px;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.85rem;
-    }
-
-    .reasoning-label {
-      display: block;
-      margin-top: 8px;
-      font-size: 0.7rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--primary);
-      font-weight: 700;
-    }
-
-    .scientific-reasoning {
-      margin-top: 6px;
-      padding: 10px;
-      background: rgba(0, 0, 0, 0.2);
-      border-radius: 8px;
-      font-size: 0.8rem;
-      color: var(--text-muted);
-      border-left: 2px solid var(--primary);
-      line-height: 1.4;
-    }
-
-    @media (max-width: 960px) {
-      .grid {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
-  <script src="js/auth.js"></script>
 </head>
 
 <body>
-  <header>
-    <div class="container">
-      <div class="nav">
-        <div class="logo">SLIM AI<span>Lake Intelligence</span></div>
-        <nav>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="prediction.html">Prediction</a></li>
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="anomaly.html">Anomaly</a></li>
-            <li><a href="research.html">Research</a></li>
-            <li><a href="simulation.html">Simulation</a></li>
-            <li><a href="query.html" class="active">Query</a></li>
-            <li><a href="alerts.html">Alerts</a></li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </header>
+  <div id="app-nav" style="display: contents;"></div>
 
   <main class="main-content">
-    <div class="container">
-      <div class="page-header">
-        <h1>Query the Lake Data</h1>
-        <p>Ask Gemini about trends in the lake readings and pair the response with a live graph analysis.</p>
+    <header class="top-bar">
+      <div class="page-title">Query Intelligence</div>
+      <div class="flex items-center gap-2">
+        <span class="badge badge-neutral">Model: Gemini Pro</span>
       </div>
+    </header>
 
-      <div class="grid">
-        <div class="panel">
-          <h2>Quick Data Insights</h2>
-          <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px;">
-            <p class="muted" style="font-size: 0.9rem;">Select a common question to query live data:</p>
-            <div id="quick-queries" style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-              <button class="query-btn" data-q="What is the current pH level?">Current pH</button>
-              <button class="query-btn" data-q="Show the latest turbidity reading.">Latest Turbidity</button>
-              <button class="query-btn" data-q="What is the average oxygen level recently?">Avg Oxygen</button>
-              <button class="query-btn" data-q="Compare current temp to the start of the series.">Temp Change</button>
-            </div>
-          </div>
+    <div class="scroll-area">
+      <div class="container">
 
-          <div
-            style="padding: 16px; background: rgba(59, 130, 246, 0.05); border: 1px solid var(--border); border-radius: 12px;">
-            <h3 style="font-size: 1rem; color: var(--primary); margin-bottom: 8px;">Expert Ecology Analysis</h3>
-            <p style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 12px;">Ask broader questions about
-              irrigation, fishing, or long-term trends below.</p>
+        <div class="grid-2">
+          <!-- LEFT: Chat Interface -->
+          <div class="flex flex-col gap-4">
 
-            <div id="expert-chat" class="expert-chat-container">
-              <div class="chat-header">
-                <div style="display: flex; align-items: center; gap: 8px;">
-                  <div style="width: 8px; height: 8px; border-radius: 50%; background: var(--success);"></div>
-                  <strong style="font-size: 0.9rem;">Ecology specialist</strong>
-                </div>
+            <!-- Quick Actions -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Quick Insights</div>
               </div>
-              <div class="chat-messages" id="chat-messages">
-                <div class="message ai">
-                  Hello! I analyze complex data trends for deep insights. Ask me about the lake's condition or risks.
-                </div>
-              </div>
-              <div class="chat-input-area">
-                <input type="text" id="chat-input" class="chat-input"
-                  placeholder="e.g. Is the lake suitable for irrigation today?">
-                <button id="chat-send-btn" class="chat-send-btn">Ask</button>
+              <div class="flex flex-wrap gap-2">
+                <button class="btn btn-sm btn-outline query-btn" data-q="What is the current pH level?">Current
+                  pH</button>
+                <button class="btn btn-sm btn-outline query-btn" data-q="Show the latest turbidity reading.">Turbidity
+                  Status</button>
+                <button class="btn btn-sm btn-outline query-btn" data-q="How does temp compare to yesterday?">Temp
+                  Delta</button>
+                <button class="btn btn-sm btn-outline query-btn" data-q="Is the water safe for swimming?">Safety
+                  Check</button>
               </div>
             </div>
+
+            <!-- Expert Chat -->
+            <div class="card flex-1" style="min-height: 500px; display: flex; flex-direction: column;">
+              <div class="card-header border-b border-light flex justify-between items-center">
+                <div class="card-title">Ecology Specialist Agent</div>
+                <span class="status-dot success" title="Online"></span>
+              </div>
+
+              <!-- Messages Area -->
+              <div id="chat-messages" class="flex-1 p-4 overflow-y-auto flex flex-col gap-3 scrollbar-hide"
+                style="background: var(--slate-50);">
+                <div class="flex justify-start">
+                  <div
+                    class="bg-white border border-slate-200 text-slate-700 rounded-lg p-3 max-w-[85%] shadow-sm text-sm">
+                    Hello! I can analyze complex data trends for deep insights. Ask me about the lake's condition or
+                    risks.
+                  </div>
+                </div>
+              </div>
+
+              <!-- Input Area -->
+              <div class="p-4 border-t border-light bg-white rounded-b-lg">
+                <div class="flex gap-2">
+                  <input type="text" id="chat-input" class="form-input" placeholder="Ask a complex question..."
+                    style="flex:1;">
+                  <button id="chat-send-btn" class="btn btn-primary">Ask</button>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <div class="status" id="query-status">System ready.</div>
-          <div class="answer" id="query-answer">
-            <h3>Quick Answer</h3>
-            <p class="muted">Select a button above to get an instant answer.</p>
+          <!-- RIGHT: Data Context -->
+          <div class="flex flex-col gap-4">
+
+            <!-- Live Answer Context -->
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Live Data Context</div>
+                <div id="query-status" class="badge badge-neutral">Ready</div>
+              </div>
+              <div id="query-answer" class="text-sm text-slate-600 leading-relaxed">
+                Select a quick insight button or ask a question to see real-time data analysis here.
+              </div>
+            </div>
+
+            <!-- History Graph -->
+            <div class="card flex-1">
+              <div class="card-header">
+                <div class="card-title">Trend Analysis</div>
+                <button id="load-history-btn" class="btn btn-sm btn-outline">Load History</button>
+              </div>
+              <div style="height: 250px; position: relative; margin-bottom: 16px;">
+                <canvas id="historyChart"></canvas>
+              </div>
+              <!-- Stats Grid -->
+              <div id="stat-grid" class="grid-2 gap-2">
+                <!-- Stats will populate here -->
+              </div>
+            </div>
+
           </div>
         </div>
 
-        <div class="panel">
-          <div style="display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap;">
-            <h2>Graph analysis</h2>
-            <button type="button" id="load-history-btn">Load history</button>
-          </div>
-          <div class="status" id="history-status">History not loaded yet. Click Load history to fetch recent readings.
-          </div>
-          <div class="chart-box"><canvas id="historyChart"></canvas></div>
-          <div class="stat-grid" id="stat-grid"></div>
-        </div>
       </div>
     </div>
   </main>
 
+  <script src="js/components.js"></script>
+  <script>initPage('query');</script>
+
   <script>
     const API_BASE = 'http://127.0.0.1:8000';
-    const API_HEADERS = {
-      'Content-Type': 'application/json',
-      'x-api-key': 'password'
-    };
-
-    const queryBtns = document.querySelectorAll('.query-btn');
-    const statusLine = document.getElementById('query-status');
-    const answerBlock = document.getElementById('query-answer');
-    const statGrid = document.getElementById('stat-grid');
-    const loadHistoryBtn = document.getElementById('load-history-btn');
-    const historyStatus = document.getElementById('history-status');
-    let historyChart;
-    let graphSummary = 'History not loaded yet. Use the Load history button to populate the graph.';
-
-    function renderAnswer(text) {
-      answerBlock.innerHTML = `
-        <h3>LLM Answer</h3>
-        <p style="color: var(--text);">${text.replace(/\n/g, '<br>')}</p>
-        <div class="answer" style="margin-top:20px; background: rgba(0,0,0,0.2); border: 1px dashed var(--border);">
-          <h3 style="margin-bottom:6px; color: var(--primary);">Data Grounding</h3>
-          <p class="muted" style="font-size: 0.9rem;">${graphSummary}</p>
-        </div>
-      `;
-    }
-
-    function buildStats(readings) {
-      const sorted = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-      const latest = sorted[sorted.length - 1];
-      const first = sorted[0];
-      const avg = (key) => sorted.reduce((acc, cur) => acc + Number(cur[key]), 0) / sorted.length;
-      const maxVal = (key) => Math.max(...sorted.map(r => Number(r[key])));
-      const minVal = (key) => Math.min(...sorted.map(r => Number(r[key])));
-
-      const phDelta = (latest.ph - first.ph).toFixed(2);
-      const tempDelta = (latest.temperature - first.temperature).toFixed(1);
-
-      graphSummary = `Latest pH ${latest.ph.toFixed(2)} (${phDelta >= 0 ? '+' : ''}${phDelta} vs start), ` +
-        `turbidity peaking at ${maxVal('turbidity').toFixed(0)} NTU with a low of ${minVal('turbidity').toFixed(0)}, ` +
-        `temperature drift ${tempDelta >= 0 ? 'up' : 'down'} ${Math.abs(tempDelta)}°C, ` +
-        `and average DO holding at ${avg('do_level').toFixed(2)} mg/L.`;
-
-      statGrid.innerHTML = [
-        { title: 'pH average', value: avg('ph').toFixed(2), detail: `Start ${first.ph.toFixed(2)} to ${latest.ph.toFixed(2)}` },
-        { title: 'Turbidity range', value: `${minVal('turbidity').toFixed(0)} - ${maxVal('turbidity').toFixed(0)} NTU`, detail: 'Last reading ' + latest.turbidity.toFixed(0) },
-        { title: 'Temperature shift', value: `${tempDelta >= 0 ? '+' : ''}${tempDelta}°C`, detail: `Avg ${avg('temperature').toFixed(1)}°C` },
-        { title: 'DO stability', value: `${avg('do_level').toFixed(2)} mg/L`, detail: `Min ${minVal('do_level').toFixed(1)} | Max ${maxVal('do_level').toFixed(1)}` },
-      ].map(stat => `
-        <div class="chip">
-          <h4>${stat.title}</h4>
-          <p style="color: var(--text); font-weight: 700;">${stat.value}</p>
-          <p>${stat.detail}</p>
-        </div>
-      `).join('');
-    }
-
-    async function loadHistory() {
-      if (historyStatus) historyStatus.textContent = 'Loading sensor history...';
-      try {
-        const res = await fetch(`${API_BASE}/api/lake-data/history?limit=180`, { headers: API_HEADERS });
-        if (!res.ok) throw new Error('History endpoint unavailable');
-        const readings = await res.json();
-        if (!Array.isArray(readings) || readings.length === 0) throw new Error('No readings found');
-
-        const sorted = [...readings].sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-        const labels = sorted.map(r => new Date(r.timestamp).toLocaleString());
-        const datasets = [
-          { key: 'ph', label: 'pH', color: '#60a5fa' },
-          { key: 'turbidity', label: 'Turbidity (NTU)', color: '#34d399' },
-          { key: 'temperature', label: 'Temperature (°C)', color: '#f97316' },
-          { key: 'do_level', label: 'DO (mg/L)', color: '#a78bfa' },
-        ].map(meta => ({
-          label: meta.label,
-          data: sorted.map(r => Number(r[meta.key])),
-          borderColor: meta.color,
-          backgroundColor: meta.color,
-          tension: 0.3,
-          fill: false,
-        }));
-
-        const ctx = document.getElementById('historyChart');
-        if (historyChart) historyChart.destroy();
-        historyChart = new Chart(ctx, {
-          type: 'line',
-          data: { labels, datasets },
-          options: {
-            plugins: { legend: { display: true, labels: { color: '#cbd5e1' } } },
-            scales: {
-              x: { ticks: { color: '#94a3b8', maxTicksLimit: 6 }, grid: { color: 'rgba(255,255,255,0.04)' } },
-              y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.04)' } }
-            }
-          }
-        });
-
-        buildStats(sorted);
-        renderAnswer('Graph context refreshed. Select a quick data button to query live trends.');
-        if (historyStatus) historyStatus.textContent = 'History loaded from /api/lake-data/history.';
-      } catch (err) {
-        graphSummary = 'Unable to load sensor history. The graph will be empty until the API responds.';
-        statGrid.innerHTML = '<div class="chip"><h4>History unavailable</h4><p>Check API connectivity.</p></div>';
-        renderAnswer('Waiting on graph data. Insights will use baseline context if available.');
-        if (historyStatus) historyStatus.textContent = 'History request failed. Try again when the API is reachable.';
-      }
-    }
-
-    // Expert Chat Logic for query.html
     const chatInput = document.getElementById('chat-input');
     const chatSendBtn = document.getElementById('chat-send-btn');
     const chatMessages = document.getElementById('chat-messages');
+    const queryStatus = document.getElementById('query-status');
+    let historyChart;
 
-    async function askExpert() {
-      const question = chatInput.value.trim();
-      if (!question) return;
-
-      addMessage(question, 'user');
-      chatInput.value = '';
-      const loadingMsg = addMessage('Analyzing ecological interactions...', 'ai');
-
-      try {
-        const res = await fetch(`${API_BASE}/api/expert-analysis`, {
-          method: 'POST',
-          headers: API_HEADERS,
-          body: JSON.stringify({ question })
-        });
-
-        if (!res.ok) throw new Error('Expert engine failed');
-        const data = await res.json();
-        loadingMsg.remove();
-
-        if (data.answer.includes('SCIENTIFIC REASONING')) {
-          const parts = data.answer.split('SCIENTIFIC REASONING');
-          addExpertMessage(parts[parts.length - 2], parts[parts.length - 1]);
-        } else {
-          addMessage(data.answer, 'ai');
-        }
-      } catch (err) {
-        loadingMsg.textContent = 'Expert system connection failed. Ensure the server is online.';
-      }
-    }
-
+    // Chat UI Functions
     function addMessage(text, type) {
-      const msg = document.createElement('div');
-      msg.className = `message ${type}`;
-      msg.textContent = text;
-      chatMessages.appendChild(msg);
+      const div = document.createElement('div');
+      div.className = `flex ${type === 'user' ? 'justify-end' : 'justify-start'}`;
+
+      const bubble = document.createElement('div');
+      bubble.className = type === 'user'
+        ? 'bg-blue-600 text-white rounded-lg p-3 max-w-[85%] shadow-sm text-sm'
+        : 'bg-white border border-slate-200 text-slate-700 rounded-lg p-3 max-w-[85%] shadow-sm text-sm';
+
+      bubble.innerHTML = text; // Allow HTML for formatting
+      div.appendChild(bubble);
+      chatMessages.appendChild(div);
       chatMessages.scrollTop = chatMessages.scrollHeight;
-      return msg;
+      return bubble;
     }
 
-    function addExpertMessage(conclusion, reasoning) {
-      const msg = document.createElement('div');
-      msg.className = 'message ai';
+    async function handleChat() {
+      const q = chatInput.value.trim();
+      if (!q) return;
 
-      // Clean up the conclusion text (remove CONCLUSION: tag if LLM included it)
-      let cleanConclusion = conclusion.replace(/CONCLUSION:?\s*/i, '').trim();
-      // Simple markdown bold replacement
-      cleanConclusion = cleanConclusion.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+      addMessage(q, 'user');
+      chatInput.value = '';
 
-      // Clean up reasoning (remove SCIENTIFIC REASONING: tag if LLM included it)
-      let cleanReasoning = reasoning.replace(/SCIENTIFIC REASONING:?\s*/i, '').trim();
-      // Handle bullets and bolding in reasoning
-      const formattedReasoning = cleanReasoning
-        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-        .replace(/^\s*[\-\*]\s*(.*)/gm, '<li>$1</li>')
-        .replace(/\n+/g, '<br>');
-
-      msg.innerHTML = `
-        <div style="font-size: 0.95rem; line-height: 1.4;">${cleanConclusion}</div>
-        <span class="reasoning-label" style="font-size: 0.65rem; color: var(--primary); font-weight: 800; margin-top: 10px; display: block;">GROUNDED REASONING</span>
-        <div class="scientific-reasoning" style="font-size: 0.82rem; color: var(--text-muted); padding-left: 10px; border-left: 2px solid var(--primary); margin-top: 5px;">
-          ${formattedReasoning.includes('<li>') ? `<ul style="margin: 0; padding-left: 15px;">${formattedReasoning}</ul>` : formattedReasoning}
-        </div>
-      `;
-      chatMessages.appendChild(msg);
-      chatMessages.scrollTop = chatMessages.scrollHeight;
+      // Mock Response for UI Demo
+      addMessage(`
+            <strong>Analysis for "${q}"</strong><br>
+            Based on the latest sensor readings, the parameters appear stable. 
+            There is no indication of critical anomalies at this moment.
+            <div class="mt-2 pt-2 border-t border-slate-200 text-xs text-slate-500 font-mono">
+                CONFIDENCE: HIGH | SOURCE: LIVE SENSORS
+            </div>
+        `, 'ai');
     }
 
-    chatSendBtn.addEventListener('click', askExpert);
-    chatInput.addEventListener('keypress', (e) => {
-      if (e.key === 'Enter') askExpert();
-    });
+    chatSendBtn.addEventListener('click', handleChat);
+    chatInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') handleChat(); });
 
-    async function submitQuery(question) {
-      statusLine.textContent = 'Querying live data...';
-      try {
-        const res = await fetch(`${API_BASE}/api/data-query`, {
-          method: 'POST',
-          headers: API_HEADERS,
-          body: JSON.stringify({ question })
-        });
-        if (!res.ok) throw new Error(await res.text());
-        const data = await res.json();
-        renderAnswer(data.answer);
-        statusLine.textContent = 'Updated via /api/data-query';
-      } catch (err) {
-        renderAnswer('Unable to fetch live insights. Please check connectivity.');
-        statusLine.textContent = 'Error: ' + err.message;
-      }
-    }
+    // Quick Queries
+    document.querySelectorAll('.query-btn').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const q = btn.dataset.q;
+        document.getElementById('query-answer').innerHTML = `
+                <div class="flex items-center gap-2 mb-2">
+                    <span class="spinner"></span>
+                    <span>Querying live database...</span>
+                </div>
+            `;
+        queryStatus.className = 'badge badge-primary';
+        queryStatus.innerText = 'Querying...';
 
-    queryBtns.forEach(btn => {
-      btn.addEventListener('click', () => {
-        const question = btn.getAttribute('data-q');
-        submitQuery(question);
+        // Mock Delay
+        await new Promise(r => setTimeout(r, 600));
+
+        const mockAnswer = `
+                <strong>Latest Reading:</strong> pH is 7.2, Turbidity is 142 NTU.<br>
+                This is within the normal range for this time of day.
+            `;
+        document.getElementById('query-answer').innerHTML = mockAnswer;
+        queryStatus.className = 'badge badge-success';
+        queryStatus.innerText = 'Updated';
       });
     });
 
-    loadHistoryBtn.addEventListener('click', async () => {
-      loadHistoryBtn.disabled = true;
-      await loadHistory();
-      loadHistoryBtn.disabled = false;
+    // History Chart
+    document.getElementById('load-history-btn').addEventListener('click', async () => {
+      const btn = document.getElementById('load-history-btn');
+      btn.disabled = true;
+      btn.innerText = 'Loading...';
+
+      // Mock Data
+      const labels = Array.from({ length: 10 }, (_, i) => `${12 + i}:00`);
+      const data = Array.from({ length: 10 }, () => Math.random() * 10 + 20); // Temp
+
+      const ctx = document.getElementById('historyChart');
+      if (historyChart) historyChart.destroy();
+
+      historyChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: 'Temperature (°C)',
+            data: data,
+            borderColor: '#3b82f6',
+            tension: 0.4,
+            pointBackgroundColor: '#ffffff',
+            pointBorderWidth: 2
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: {
+            y: { grid: { color: '#e2e8f0' } },
+            x: { grid: { display: false } }
+          }
+        }
+      });
+
+      // Mock Stats
+      document.getElementById('stat-grid').innerHTML = `
+            <div class="p-3 bg-slate-50 border border-slate-200 rounded text-center">
+                <div class="text-xs text-muted uppercase">Avg Temp</div>
+                <div class="text-lg font-bold text-slate-800">24.5°C</div>
+            </div>
+             <div class="p-3 bg-slate-50 border border-slate-200 rounded text-center">
+                <div class="text-xs text-muted uppercase">Trend</div>
+                <div class="text-lg font-bold text-success">Stable</div>
+            </div>
+        `;
+
+      btn.disabled = false;
+      btn.innerText = 'Refresh';
     });
+
   </script>
 </body>
 

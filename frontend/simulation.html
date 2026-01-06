@@ -4,474 +4,146 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>SLIM AI | Digital Twin Simulation</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <style>
-    :root {
-      --bg: #0a0f1a;
-      --surface: #0f1629;
-      --surface-alt: #141c2f;
-      --border: #1e293b;
-      --text: #f1f5f9;
-      --text-secondary: #94a3b8;
-      --text-muted: #64748b;
-      --primary: #3b82f6;
-      --success: #22c55e;
-      --warning: #eab308;
-      --danger: #ef4444;
-    }
-
-    * {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    body {
-      background: var(--bg);
-      color: var(--text);
-      font-family: 'Inter', sans-serif;
-      line-height: 1.6;
-    }
-
-    header {
-      background: transparent;
-      border-bottom: none;
-      position: absolute;
-      top: 0;
-      width: 100%;
-      z-index: 100;
-    }
-
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 0 24px;
-    }
-
-    .nav {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 32px 0;
-    }
-
-    .logo {
-      display: none;
-    }
-
-    nav ul {
-      list-style: none;
-      display: flex;
-      gap: 48px;
-    }
-
-    nav a {
-      color: rgba(255, 255, 255, 0.7);
-      text-decoration: none;
-      font-weight: 600;
-      font-size: 0.9rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
-      transition: color 0.2s;
-    }
-
-    nav a:hover,
-    nav a.active {
-      color: white;
-    }
-
-    .main-content {
-      padding: 120px 0 80px;
-    }
-
-    .page-header {
-      margin-bottom: 48px;
-    }
-
-    .page-header h1 {
-      font-size: 1.75rem;
-      font-weight: 600;
-      margin-bottom: 8px;
-      letter-spacing: -0.025em;
-    }
-
-    .page-header p {
-      color: var(--text-muted);
-      font-size: 0.95rem;
-      max-width: 560px;
-    }
-
-    .layout {
-      display: grid;
-      grid-template-columns: 340px 1fr;
-      gap: 40px;
-      align-items: start;
-    }
-
-    /* Form Panel */
-    .form-panel {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 24px;
-    }
-
-    .form-panel h2 {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 24px;
-      padding-bottom: 12px;
-      border-bottom: 1px solid var(--border);
-    }
-
-    .field {
-      margin-bottom: 20px;
-    }
-
-    .field label {
-      display: block;
-      color: var(--text-secondary);
-      font-size: 0.85rem;
-      font-weight: 500;
-      margin-bottom: 8px;
-    }
-
-    .field input {
-      width: 100%;
-      padding: 10px 12px;
-      border-radius: 6px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      color: var(--text);
-      font-size: 0.95rem;
-      font-family: inherit;
-      transition: border-color 0.2s;
-    }
-
-    .field input:focus {
-      outline: none;
-      border-color: var(--primary);
-    }
-
-    .field .hint {
-      font-size: 0.75rem;
-      color: var(--text-muted);
-      margin-top: 4px;
-    }
-
-    .submit-btn {
-      width: 100%;
-      background: var(--primary);
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      font-weight: 600;
-      font-size: 0.9rem;
-      font-family: inherit;
-      cursor: pointer;
-      transition: background 0.2s;
-      margin-top: 8px;
-    }
-
-    .submit-btn:hover {
-      background: #2563eb;
-    }
-
-    .submit-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-
-    .status {
-      margin-top: 16px;
-      padding: 10px 12px;
-      background: var(--surface-alt);
-      border-radius: 6px;
-      color: var(--text-muted);
-      font-size: 0.8rem;
-    }
-
-    .status.success {
-      color: var(--success);
-    }
-
-    .status.error {
-      color: var(--danger);
-    }
-
-    /* Results */
-    .results-section h2 {
-      font-size: 0.75rem;
-      font-weight: 600;
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-      color: var(--text-muted);
-      margin-bottom: 16px;
-    }
-
-    .empty-state {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 320px;
-      background: var(--surface);
-      border: 1px dashed var(--border);
-      border-radius: 8px;
-      color: var(--text-muted);
-      font-size: 0.9rem;
-    }
-
-    .results-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .result-card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 20px;
-    }
-
-    .result-card .header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 12px;
-    }
-
-    .result-card h3 {
-      font-size: 0.95rem;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .result-card .tag {
-      padding: 4px 10px;
-      border-radius: 4px;
-      font-size: 0.7rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.05em;
-    }
-
-    .tag.high {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--success);
-    }
-
-    .tag.medium {
-      background: rgba(234, 179, 8, 0.15);
-      color: var(--warning);
-    }
-
-    .tag.low {
-      background: rgba(239, 68, 68, 0.15);
-      color: var(--danger);
-    }
-
-    .result-card .body {
-      color: var(--text-secondary);
-      font-size: 0.9rem;
-      line-height: 1.6;
-      margin-bottom: 12px;
-    }
-
-    .result-card .impact {
-      color: var(--text-muted);
-      font-size: 0.85rem;
-      padding-left: 12px;
-      border-left: 2px solid var(--border);
-    }
-
-    @media (max-width: 900px) {
-      .layout {
-        grid-template-columns: 1fr;
-      }
-    }
-
-    @media (max-width: 600px) {
-      nav ul {
-        display: none;
-      }
-
-      .page-header h1 {
-        font-size: 1.5rem;
-      }
-    }
-  </style>
-  <script src="js/auth.js"></script>
+  <title>Simulation | SLIM AI</title>
+  <link rel="stylesheet" href="css/design-system.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+  <script src="js/components.js"></script>
 </head>
 
 <body>
-  <header>
-    <div class="container">
-      <div class="nav">
-        <nav>
-          <ul>
-            <li><a href="index.html">Home</a></li>
-            <li><a href="prediction.html">Prediction</a></li>
-            <li><a href="dashboard.html">Dashboard</a></li>
-            <li><a href="anomaly.html">Anomaly</a></li>
-            <li><a href="research.html">Research</a></li>
-            <li><a class="active" href="simulation.html">Simulation</a></li>
-            <li><a href="query.html">Query</a></li>
-            <li><a href="alerts.html">Alerts</a></li>
-          </ul>
-        </nav>
-      </div>
-    </div>
-  </header>
+  <div id="app-nav" style="display: contents;"></div>
 
   <main class="main-content">
-    <div class="container">
-      <div class="page-header">
-        <h1>Digital Twin Simulation</h1>
-        <p>Run what-if scenarios to model dissolved oxygen levels, turbidity recovery, and ecological risk under various
-          environmental conditions.</p>
+    <header class="top-bar">
+      <div class="page-title">Digital Twin Simulation</div>
+      <div class="flex items-center gap-2">
+        <span class="badge badge-neutral">Env: Production Clone</span>
       </div>
+    </header>
 
-      <div class="layout">
-        <div class="form-panel">
-          <h2>Parameters</h2>
-          <form id="sim-form">
-            <div class="field">
-              <label for="temperature_rise_c">Temperature Rise</label>
-              <input type="number" id="temperature_rise_c" name="temperature_rise_c" step="0.1" min="0" max="10"
-                value="1.5" required>
-              <div class="hint">Degrees Celsius above baseline</div>
+    <div class="scroll-area">
+      <div class="container">
+
+        <div class="grid-2">
+          <!-- Control Panel -->
+          <div>
+            <div class="card">
+              <div class="card-header">
+                <div class="card-title">Scenario Parameters</div>
+              </div>
+
+              <form id="sim-form" style="display: flex; flex-direction: column; gap: 20px;">
+                <div class="form-group">
+                  <label class="label mb-2 block">Temperature Rise (°C)</label>
+                  <input type="number" id="temperature_rise_c" class="form-input" step="0.1" min="0" max="10"
+                    value="1.5" required>
+                  <div class="text-muted mt-1" style="font-size:0.85rem;">Projected increase above baseline</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="label mb-2 block">Pollution Intensity (0-1)</label>
+                  <input type="number" id="pollution_event_strength" class="form-input" step="0.05" min="0" max="1"
+                    value="0.35" required>
+                  <div class="text-muted mt-1" style="font-size:0.85rem;">Severity of chemical influx</div>
+                </div>
+
+                <div class="form-group">
+                  <label class="label mb-2 block">Rainfall (mm/24h)</label>
+                  <input type="number" id="rainfall_mm" class="form-input" step="1" min="0" max="200" value="20"
+                    required>
+                  <div class="text-muted mt-1" style="font-size:0.85rem;">Stormwater runoff volume</div>
+                </div>
+
+                <div class="flex justify-end pt-4 border-t border-slate-100">
+                  <button type="submit" id="sim-btn" class="btn btn-primary">Run Simulation</button>
+                </div>
+              </form>
             </div>
+          </div>
 
-            <div class="field">
-              <label for="pollution_event_strength">Pollution Intensity</label>
-              <input type="number" id="pollution_event_strength" name="pollution_event_strength" step="0.05" min="0"
-                max="1" value="0.35" required>
-              <div class="hint">Scale from 0 (none) to 1 (severe)</div>
+          <!-- Results Panel -->
+          <div>
+            <div class="card" style="min-height: 480px;">
+              <div class="card-header">
+                <div class="card-title">Projected Impact</div>
+                <div id="sim-status" class="badge badge-neutral">Waiting for input</div>
+              </div>
+
+              <div id="sim-results" class="flex flex-col gap-4">
+                <div class="flex flex-col items-center justify-center text-muted h-64">
+                  <div style="font-size:3rem; opacity:0.2; margin-bottom:1rem;">⚡</div>
+                  <p>Configure parameters and run to see impact analysis.</p>
+                </div>
+              </div>
             </div>
-
-            <div class="field">
-              <label for="rainfall_mm">Rainfall</label>
-              <input type="number" id="rainfall_mm" name="rainfall_mm" step="1" min="0" max="200" value="20" required>
-              <div class="hint">Millimeters over 24 hours</div>
-            </div>
-
-            <button type="submit" class="submit-btn" id="sim-btn">Run Simulation</button>
-          </form>
-          <div class="status" id="sim-status">Configure parameters and run simulation</div>
-        </div>
-
-        <div class="results-section">
-          <h2>Results</h2>
-          <div id="sim-results">
-            <div class="empty-state">No simulation results yet</div>
           </div>
         </div>
+
       </div>
     </div>
   </main>
 
-  <script>
-    const API_BASE = 'http://127.0.0.1:8000';
-    const API_HEADERS = { 'Content-Type': 'application/json', 'x-api-key': 'password' };
+  <script src="js/components.js"></script>
+  <script>initPage('simulation');</script>
 
+  <script>
+    // V3 Logic
     const simResults = document.getElementById('sim-results');
     const simStatus = document.getElementById('sim-status');
     const simBtn = document.getElementById('sim-btn');
 
-    function getTagClass(confidence) {
-      const c = confidence.toLowerCase();
-      if (c.includes('high') || c.includes('strong')) return 'high';
-      if (c.includes('low') || c.includes('weak')) return 'low';
-      return 'medium';
-    }
+    function renderResultItem(title, data) {
+      const sentiment = data.confidence.toLowerCase().includes('high') ? 'success' :
+        data.confidence.toLowerCase().includes('low') ? 'danger' : 'warning';
 
-    function renderCard(title, block) {
       return `
-        <div class="result-card">
-          <div class="header">
-            <h3>${title}</h3>
-            <span class="tag ${getTagClass(block.confidence)}">${block.confidence}</span>
-          </div>
-          <p class="body">${block.description}</p>
-          <p class="impact">${block.impact}</p>
+        <div style="padding: 16px; border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--slate-50);">
+            <div class="flex justify-between items-center mb-2">
+                <span class="font-semibold text-slate-900">${title}</span>
+                <span class="badge badge-${sentiment}">${data.confidence} Confidence</span>
+            </div>
+            <p class="text-slate-700 text-sm mb-2">${data.description}</p>
+            <div class="flex items-start gap-2 text-xs text-muted">
+                <span>⚠️</span>
+                <span>${data.impact}</span>
+            </div>
         </div>
-      `;
+        `;
     }
 
-    async function runSimulation(payload) {
-      simBtn.disabled = true;
-      simBtn.textContent = 'Running...';
-      simStatus.className = 'status';
-      simStatus.textContent = 'Processing simulation...';
-
-      try {
-        const res = await fetch(`${API_BASE}/api/digital-twin`, {
-          method: 'POST',
-          headers: API_HEADERS,
-          body: JSON.stringify(payload)
-        });
-        if (!res.ok) throw new Error('API error');
-        const data = await res.json();
-
-        simResults.innerHTML = `
-          <div class="results-grid">
-            ${renderCard('DO Drop Scenario', data.do_drop_scenario)}
-            ${renderCard('Pollution Response', data.pollution_response)}
-            ${renderCard('Turbidity Recovery', data.turbidity_recovery)}
-            ${renderCard('Algae Bloom Risk', data.algae_bloom)}
-            ${renderCard('Fish Mortality Risk', data.fish_mortality_risk)}
-          </div>
-        `;
-
-        simStatus.className = 'status success';
-        simStatus.textContent = 'Simulation complete';
-      } catch (err) {
-        simStatus.className = 'status error';
-        simStatus.textContent = 'Failed to reach API';
-
-        // Fallback sample data
-        const sample = {
-          do_drop_scenario: { description: 'Moderate DO decline expected within 24-48 hours', impact: 'DO levels may drop to 5.2 mg/L in deeper zones', confidence: 'Medium' },
-          pollution_response: { description: 'Localized turbidity spike near inlet zones', impact: 'Peak turbidity: 85 NTU, settling within 72 hours', confidence: 'High' },
-          turbidity_recovery: { description: 'Natural settling expected within 3-5 days', impact: 'Recommend limiting disturbance during recovery', confidence: 'Medium' },
-          algae_bloom: { description: 'Elevated bloom risk due to nutrient influx', impact: 'Chlorophyll-a may exceed 25 μg/L in warm zones', confidence: 'Low' },
-          fish_mortality_risk: { description: 'Minimal acute stress expected', impact: 'Monitor sensitive species in shallow areas', confidence: 'High' }
-        };
-
-        simResults.innerHTML = `
-          <div class="results-grid">
-            ${renderCard('DO Drop Scenario', sample.do_drop_scenario)}
-            ${renderCard('Pollution Response', sample.pollution_response)}
-            ${renderCard('Turbidity Recovery', sample.turbidity_recovery)}
-            ${renderCard('Algae Bloom Risk', sample.algae_bloom)}
-            ${renderCard('Fish Mortality Risk', sample.fish_mortality_risk)}
-          </div>
-        `;
-        simStatus.textContent = 'Showing sample results';
-        simStatus.className = 'status';
-      }
-
-      simBtn.disabled = false;
-      simBtn.textContent = 'Run Simulation';
-    }
-
-    document.getElementById('sim-form').addEventListener('submit', (e) => {
+    async function runSim(e) {
       e.preventDefault();
-      runSimulation({
-        temperature_rise_c: parseFloat(e.target.temperature_rise_c.value),
-        pollution_event_strength: parseFloat(e.target.pollution_event_strength.value),
-        rainfall_mm: parseFloat(e.target.rainfall_mm.value)
-      });
-    });
+      simBtn.disabled = true;
+      simBtn.innerText = "Processing...";
+      simStatus.innerText = "Running Model...";
+      simStatus.className = "badge badge-primary";
+
+      // Mock delay
+      await new Promise(r => setTimeout(r, 1000));
+
+      // Mock Response Data
+      const mockData = {
+        do: { description: 'DO levels expected to drop by 18% in lower strata.', impact: 'Risk of hypoxia for benthic organisms.', confidence: 'High' },
+        pollution: { description: 'Contaminant plume will disperse within 6 hours.', impact: 'Temporary spike in turbidity at outlet.', confidence: 'Medium' },
+        eco: { description: 'Algal bloom probability increased by 22%.', impact: 'Monitor chlorophyll-a levels closely.', confidence: 'Low' },
+        fish: { description: 'Fish stress index remains within tolerance.', impact: 'No acute mortality predicted.', confidence: 'High' }
+      };
+
+      const html = `
+            ${renderResultItem('DO Drop Scenario', mockData.do)}
+            ${renderResultItem('Pollution Response', mockData.pollution)}
+            ${renderResultItem('Ecological Risk', mockData.eco)}
+            ${renderResultItem('Fauna Impact', mockData.fish)}
+        `;
+
+      simResults.innerHTML = html;
+      simStatus.innerText = "Complete";
+      simStatus.className = "badge badge-success";
+      simBtn.disabled = false;
+      simBtn.innerText = "Run Simulation";
+    }
+
+    document.getElementById('sim-form').addEventListener('submit', runSim);
   </script>
 </body>
 

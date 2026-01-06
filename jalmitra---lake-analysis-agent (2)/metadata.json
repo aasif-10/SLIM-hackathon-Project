@@ -1,0 +1,8 @@
+
+{
+  "name": "JalMitra - Lake Analysis Agent",
+  "description": "A real-time AI customer service agent for lake health analysis with human-like Indian accent and regional language support including Chennai Tanglish.",
+  "requestFramePermissions": [
+    "microphone"
+  ]
+}

@@ -11,6 +11,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 import torch
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
+from fastapi.staticfiles import StaticFiles
+from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 from google import genai
@@ -643,8 +645,6 @@ def get_next_command(_: None = Depends(verify_api_key)):
 
     return CommandResponse(command="idle")
 
-
-from fastapi.staticfiles import StaticFiles
 
 # Resolve absolute path to frontend
 FRONTEND_DIR = Path(__file__).resolve().parent.parent / "frontend"
