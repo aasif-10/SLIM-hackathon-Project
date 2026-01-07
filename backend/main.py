@@ -128,6 +128,30 @@ def health_check():
     return {"status": "ok"}
 
 
+@app.get("/api/debug-config")
+def debug_config():
+    """Diagnose environment configuration on Render."""
+    report = {
+        "GEMINI_API_KEY_PRESENT": bool(os.getenv("GEMINI_API_KEY")),
+        "FIREBASE_PROJECT_ID": os.getenv("FIREBASE_PROJECT_ID", "MISSING"),
+        "FIREBASE_KEY_JSON_PRESENT": bool(os.getenv("FIREBASE_KEY_JSON")),
+        "FIREBASE_INIT_STATUS": "OK" if get_firestore() is not None else "FAILED",
+        "BASE_URL": os.getenv("BASE_URL", "MISSING"),
+    }
+    
+    # Check JSON validity safely
+    fb_json = os.getenv("FIREBASE_KEY_JSON")
+    if fb_json:
+        try:
+            import json
+            json.loads(fb_json)
+            report["FIREBASE_KEY_JSON_VALID"] = True
+        except Exception:
+            report["FIREBASE_KEY_JSON_VALID"] = False
+            
+    return report
+
+
 def _load_base_dataframe() -> pd.DataFrame:
     """Load and normalize lake readings from Firestore, fallback to CSV if empty."""
     data_path = Path(__file__).resolve().parent / "sample_lake_readings.csv"

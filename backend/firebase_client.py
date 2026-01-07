@@ -63,5 +63,14 @@ def get_firestore() -> firestore.client:
                 'projectId': project_id,
             })
 
-    _firestore_client = firestore.client()
+    try:
+        if not firebase_admin._apps:
+             # Logic will be skipped if already initialized
+             _firestore_client = firestore.client()
+        else:
+             _firestore_client = firestore.client()
+    except Exception as e:
+        print(f"[firebase] CRITICAL: Failed to create Firestore client even after init logic. Error: {e}")
+        return None
+
     return _firestore_client
