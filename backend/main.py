@@ -12,7 +12,7 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 import torch
 from fastapi import Depends, FastAPI, Header, HTTPException, Query, status
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 import httpx
 from google import genai
@@ -652,8 +652,27 @@ print(f"DEBUG: Frontend directory resolved to: {FRONTEND_DIR}")
 print(f"DEBUG: Directory exists? {FRONTEND_DIR.exists()}")
 
 # Mount frontend files to be served comfortably
-# 'html=True' allows accessing 'index.html' just by hitting the root URL
+# Mount frontend files to be served comfortably
 if FRONTEND_DIR.exists():
-    app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static")
+    app.mount("/assets", StaticFiles(directory=str(FRONTEND_DIR / "assets")), name="assets")
+    
+    # Explicit root handler
+    @app.get("/")
+    async def serve_spa_root():
+        return FileResponse(FRONTEND_DIR / "index.html")
+
+    # Catch-all for SPA client-side routing (must be last)
+    @app.get("/{full_path:path}")
+    async def serve_spa_catchall(full_path: str):
+        # Allow API routes to pass through (though they should match earlier ones)
+        if full_path.startswith("api") or full_path.startswith("auth"):
+             raise HTTPException(status_code=404, detail="API Endpoint Not Found")
+        
+        # Check if file exists (e.g. vite.svg), otherwise serve index.html
+        potential_file = FRONTEND_DIR / full_path
+        if potential_file.exists() and potential_file.is_file():
+            return FileResponse(potential_file)
+            
+        return FileResponse(FRONTEND_DIR / "index.html")
 else:
     print(f"WARNING: Frontend directory not found at {FRONTEND_DIR}")
