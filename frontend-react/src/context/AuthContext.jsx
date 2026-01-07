@@ -31,6 +31,9 @@ export const AuthProvider = ({ children }) => {
     }
   }, [location]);
 
+  // Dynamic API URL for production vs dev
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+
   // Fetch user info when token changes
   useEffect(() => {
     const fetchUser = async () => {
@@ -52,7 +55,7 @@ export const AuthProvider = ({ children }) => {
       }
 
       try {
-        const response = await fetch("http://localhost:8000/auth/me", {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -78,7 +81,7 @@ export const AuthProvider = ({ children }) => {
   }, [token]);
 
   const login = () => {
-    window.location.href = "http://localhost:8000/auth/login";
+    window.location.href = `${API_BASE_URL}/auth/login`;
   };
 
   // Login with access token (for dev/password login)
