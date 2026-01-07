@@ -32,7 +32,9 @@ export const AuthProvider = ({ children }) => {
   }, [location]);
 
   // Dynamic API URL for production vs dev
-  const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000";
+  // Since backend serves frontend, we can use relative paths (empty string)
+  // or explicit VITE_API_URL if set (for separate dev server)
+  const API_BASE_URL = import.meta.env.VITE_API_URL || "";
 
   // Fetch user info when token changes
   useEffect(() => {

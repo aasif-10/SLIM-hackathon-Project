@@ -32,7 +32,10 @@ const QUICK_QUERIES = [
   { label: "Do Analysis", q: "Analyze Dissolved Oxygen trends." },
 ];
 
+import { useAuth } from "../context/AuthContext";
+
 export const Query = () => {
+  const { token } = useAuth();
   const [messages, setMessages] = useState([
     {
       id: 1,
@@ -61,17 +64,17 @@ export const Query = () => {
     setIsTyping(true);
 
     try {
-      const response = await fetch(
-        "http://localhost:8000/api/expert-analysis",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "X-API-Key": import.meta.env.VITE_API_KEY || "password",
-          },
-          body: JSON.stringify({ question: q }),
-        }
-      );
+      // Dynamic API URL
+      const API_BASE_URL = import.meta.env.VITE_API_URL || "";
+
+      const response = await fetch(`${API_BASE_URL}/api/expert-analysis`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify({ question: q }),
+      });
 
       if (!response.ok) {
         throw new Error(`API returned ${response.status}`);

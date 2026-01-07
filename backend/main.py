@@ -536,8 +536,11 @@ def run_event_detection(
     return detect_events(payload)
 
 
+from auth.dependencies import get_current_user
+from auth.models import User
+
 @app.post("/api/expert-analysis", response_model=DataQueryResponse)
-def run_expert_lake_analysis(payload: DataQuery, _: None = Depends(verify_api_key)):
+def run_expert_lake_analysis(payload: DataQuery, current_user: User = Depends(get_current_user)):
     """Deep ecological analysis of lake health using Gemini for broader reasoning."""
     df = _load_base_dataframe()
     dataset_summary = _format_dataset_summary(df)
@@ -586,7 +589,7 @@ def run_expert_lake_analysis(payload: DataQuery, _: None = Depends(verify_api_ke
 
 
 @app.post("/api/data-query", response_model=DataQueryResponse)
-def query_lake_dataset(payload: DataQuery, _: None = Depends(verify_api_key)):
+def query_lake_dataset(payload: DataQuery, current_user: User = Depends(get_current_user)):
     """Handle standard quick-data questions with simplified reasoning."""
     df = _load_base_dataframe()
     dataset_summary = _format_dataset_summary(df)
