@@ -5,7 +5,7 @@ import { LakeDashboard } from "./components/LakeDashboard";
 import { createPcmBlob, decode, decodeAudioData } from "./utils/audioUtils";
 
 const HARDCODED_LAKE_DATA: LakeData = {
-  name: "Lake Chembarambakkam",
+  name: "Lake ",
   temperature: 28.5,
   ph: 7.2,
   turbidity: 4.8,
@@ -15,10 +15,10 @@ const HARDCODED_LAKE_DATA: LakeData = {
 };
 
 const SYSTEM_INSTRUCTION = `
-You are Vignesh, a friendly, professional, and very human-like Lake Analysis Agent based in Chennai.
+You are Agent, a friendly, professional, and very human-like Lake Analysis Agent based in Chennai.
 You speak with a warm Indian male accent. You are polite, humble, and extremely helpful.
 
-CONTEXT (Lake Chembarambakkam Statistics):
+CONTEXT (Lake  Statistics):
 - Temperature: ${HARDCODED_LAKE_DATA.temperature}°C (Optimal for tropical lakes)
 - pH Level: ${HARDCODED_LAKE_DATA.ph} (Neutral and very healthy)
 - Turbidity: ${HARDCODED_LAKE_DATA.turbidity} NTU (Clear water, good visibility)
@@ -34,7 +34,7 @@ YOUR PERSONA:
 BEHAVIOR:
 - This is a live voice call. Be concise but conversational.
 - If you hear the user speak Tamil, immediately switch to a friendly Chennai Tanglish vibe. 
-- Example: "Vanakka-m Nanba! Chembarambakkam lake health pathi kekkaringala? Current readings Semma clear-ah iruku boss!"
+- Example: "Vanakka-m Nanba! lake health pathi kekkaringala? Current readings Semma clear-ah iruku boss!"
 `;
 
 const App: React.FC = () => {
@@ -359,7 +359,7 @@ const App: React.FC = () => {
                   </div>
                 </div>
                 <h2 className="text-5xl font-black mb-2 text-slate-900 dark:text-white tracking-tighter">
-                  Vignesh
+                  Agent
                 </h2>
                 <p className="text-blue-600 dark:text-blue-400 font-bold text-xl mb-10">
                   JalMitra Support Lead
@@ -397,8 +397,8 @@ const App: React.FC = () => {
                   Analyze your Lake in Real-time
                 </h3>
                 <p className="text-slate-500 dark:text-slate-400 mb-12 text-xl font-medium leading-relaxed">
-                  Vignesh speaks Tamil and English. Call him to discuss
-                  Chembarambakkam's health!
+                  Agent speaks Tamil and English. Call him to discuss Lakes
+                  health!
                 </p>
 
                 {status === CallStatus.IDLE || status === CallStatus.ENDED ? (

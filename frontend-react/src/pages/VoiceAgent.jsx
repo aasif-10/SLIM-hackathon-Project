@@ -4,7 +4,7 @@ import { Card, Button } from "../components/ui";
 
 // Lake data for display
 const LAKE_DATA = {
-  name: "Lake Chembarambakkam",
+  name: "Lake",
   temperature: 28.5,
   ph: 7.2,
   turbidity: 4.8,
@@ -138,10 +138,10 @@ export const VoiceAgent = () => {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
 
       const systemInstruction = `
-You are Vignesh, a friendly, professional Lake Analysis Agent based in Chennai.
+You are Agent, a friendly, professional Lake Analysis Agent based in Chennai.
 You speak with a warm Indian accent. You are polite, humble, and helpful.
 
-CONTEXT (Lake Chembarambakkam Statistics):
+CONTEXT (Lake  Statistics):
 - Temperature: ${LAKE_DATA.temperature}°C (Optimal for tropical lakes)
 - pH Level: ${LAKE_DATA.ph} (Neutral and very healthy)
 - Turbidity: ${LAKE_DATA.turbidity} NTU (Clear water, good visibility)
@@ -150,7 +150,7 @@ CONTEXT (Lake Chembarambakkam Statistics):
 YOUR PERSONA:
 1. Default: English with a clear Indian accent.
 2. If the user speaks Tamil, respond in Tamil or Chennai Tanglish.
-3. Use friendly Chennai terms like "Boss", "Nanba", "Semma".
+3.The lake's name is lake 1
 4. Be human-like with natural pauses.
 5. Be proud of the lake's current health!
 
@@ -371,7 +371,7 @@ BEHAVIOR:
                 }}
               >
                 Speak with our agent, our AI lake analyst. Ask questions about
-                Lake Chembarambakkam's health in English or Tamil!
+                Lake 's health in English or Tamil!
               </p>
 
               {error && (
@@ -421,7 +421,7 @@ BEHAVIOR:
                 color: "var(--text-main)",
               }}
             >
-              Lake Chembarambakkam
+              Lake
             </h3>
             <div
               style={{
@@ -573,7 +573,7 @@ BEHAVIOR:
                         fontWeight: 600,
                       }}
                     >
-                      {t.role === "user" ? "👤 You" : "🤖 Vignesh"}
+                      {t.role === "user" ? "👤 You" : "🤖 Agent"}
                     </div>
                     <div style={{ fontSize: "0.85rem" }}>{t.text}</div>
                   </div>

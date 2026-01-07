@@ -56,7 +56,8 @@ def _estimate_turbidity_recovery() -> TurbidityRecovery:
     above = df[df["turbidity"] > threshold]
     for idx in above.index:
         start_ts = df.loc[idx, "timestamp"]
-        below = df.loc[idx:][df["turbidity"] <= threshold]
+        future = df.loc[idx:]
+        below = future[future["turbidity"] <= threshold]
         if below.empty: continue
         end_ts = below.iloc[0]["timestamp"]
         hours = (end_ts - start_ts).total_seconds() / 3600
