@@ -118,12 +118,32 @@ export const VoiceAgent = () => {
 
       // Dynamic import of Google GenAI
       const { GoogleGenAI, Modality } = await import("@google/genai");
-      const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+
+      // Fetch API Key from backend (secure runtime fetch)
+      let apiKey = null;
+      try {
+        const API_BASE_URL =
+          import.meta.env.VITE_API_URL || "http://localhost:8000";
+        const token = localStorage.getItem("slim_token");
+
+        if (!token) throw new Error("Authentication required");
+
+        const resp = await fetch(`${API_BASE_URL}/auth/gemini-token`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!resp.ok) throw new Error("Failed to retrieve voice credentials");
+        const data = await resp.json();
+        apiKey = data.token;
+      } catch (err) {
+        console.error("Auth Error:", err);
+        setError("Please log in to access Voice Agent.");
+        setStatus(CallStatus.ERROR);
+        return;
+      }
 
       if (!apiKey) {
-        setError(
-          "VITE_GEMINI_API_KEY not configured. Add it to frontend-react/.env"
-        );
+        setError("Voice credentials missing.");
         setStatus(CallStatus.ERROR);
         return;
       }

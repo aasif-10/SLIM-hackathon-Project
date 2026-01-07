@@ -128,3 +128,14 @@ def auth_callback(code: str, error: Optional[str] = None):
 @router.get("/me", response_model=User)
 def read_users_me(current_user: User = Depends(get_current_user)):
     return current_user
+
+@router.get("/gemini-token")
+def get_gemini_token(current_user: User = Depends(get_current_user)):
+    """
+    Returns the Gemini API key for client-side usage (e.g. WebSocket Live API).
+    Protected by authentication to prevent public scraping.
+    """
+    key = os.getenv("GEMINI_API_KEY")
+    if not key:
+        raise HTTPException(status_code=500, detail="GEMINI_API_KEY not configured on server")
+    return {"token": key}
